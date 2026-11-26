@@ -1,8 +1,8 @@
 ---
 documento: modelo
 proyecto: RutaViva
-version: 0.1.0
-fecha: 2026-11-06
+version: 0.2.0
+fecha: 2026-11-26
 estado: borrador
 fuente: MR_RutaViva.pdf (diagrama original en Oracle Data Modeler, Caso 4)
 ---
@@ -31,6 +31,7 @@ erDiagram
   USUARIO ||--o{ MANTENIMIENTO : registra
   CLIENTE_RETAILER ||--o{ ORDEN_ENTREGA : solicita
   VIAJE ||--o{ ORDEN_ENTREGA : entrega
+  MANTENIMIENTO ||--o{ EVIDENCIA_MANTENIMIENTO : documenta
 
   ZONA {
     number id_zona PK
@@ -87,6 +88,7 @@ erDiagram
     timestamp fecha_hora
     varchar tipo
     number magnitud
+    varchar unidad
     varchar ubicacion
   }
   TELEMETRIA_GPS {
@@ -114,6 +116,7 @@ erDiagram
     number probabilidad
     date fecha_limite_mantenimiento
     varchar estado
+    date fecha_programada
     number id_usuario_revision FK
   }
   MANTENIMIENTO {
@@ -152,11 +155,24 @@ erDiagram
   }
   USUARIO {
     number id_usuario PK
+    uuid auth_uuid UK
     varchar nombre
     varchar email UK
     varchar rol
     varchar pais
     boolean activo
+  }
+  EVIDENCIA_MANTENIMIENTO {
+    number id_evidencia PK
+    number id_mantenimiento FK
+    varchar ruta UK
+    varchar url
+    timestamp fecha_subida
+    uuid auth_uuid_subida
+  }
+  PARAMETRO {
+    varchar clave PK
+    number valor
   }
 ```
 
@@ -172,6 +188,24 @@ erDiagram
 - `TELEMETRIA_GPS` y `TELEMETRIA_OBD` se cargan por lotes (no hay streaming real;
   ver *Diferido* en `architectural_spine.md`).
 
+## Cambios de la Entrega 3 frente a `MR_RutaViva.pdf`
+
+- `USUARIO.auth_uuid`: el `uuid` de la cuenta en Supabase Auth (AD-03). Es único y
+  apunta a `auth.users`.
+- `PREDICCION_FALLA.fecha_programada`: la fecha de la intervención programada desde
+  una alerta (RF-02). `estado` toma `pendiente`, `programada`, `confirmada` o
+  `descartada`.
+- `EVENTO_CONDUCCION.unidad`: la unidad de `magnitud` (`g` o `km/h`).
+- `MANTENIMIENTO.id_usuario_registro` admite nulo: los mantenimientos históricos de
+  los datos de ejemplo no los registró nadie de la app.
+- `EVIDENCIA_MANTENIMIENTO` (nueva, RF-13): una fila por foto subida al bucket
+  `evidencias`; si se borra el mantenimiento, se borran sus filas.
+- `PARAMETRO` (nueva, RF-09): valores configurables de la app; hoy solo
+  `meta_otd` (fracción, 0,95 = 95 %).
+
 ## Historial
+
+- 0.2.0 · 2026-11-26 · Entrega 3: columnas `auth_uuid`, `fecha_programada` y
+  `unidad`, tablas `EVIDENCIA_MANTENIMIENTO` y `PARAMETRO`.
 
 - 0.1.0 · 2026-11-06 · Transcripción inicial desde `MR_RutaViva.pdf`.

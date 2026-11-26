@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../pages/login_page.dart';
 import '../services/auth_service.dart';
-import 'home_screen.dart';
+import '../services/usuario_service.dart';
+import '../utils/errores.dart';
 
-/// Screen anfitriona del inicio de sesión (RNF-04): guarda el estado del
-/// formulario y decide a dónde navegar. La Page solo muestra y reporta.
+/// Screen anfitriona del inicio de sesión (F-01): guarda el formulario, si está
+/// cargando y el error, y llama a Supabase Auth. La Page solo muestra y reporta.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -14,10 +15,13 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _authService = AuthService();
+  final _usuarioService = UsuarioService();
   final _form = GlobalKey<FormState>();
-  final _correo = TextEditingController(text: 'coordinador@rutaviva.com');
-  final _clave = TextEditingController(text: AuthService.claveDemo);
+  final _correo = TextEditingController();
+  final _clave = TextEditingController();
   bool _verClave = false;
+  bool _cargando = false;
   String? _error;
 
   @override
@@ -27,15 +31,28 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _entrar() {
+  Future<void> _entrar() async {
     if (!_form.currentState!.validate()) return;
+    setState(() {
+      _cargando = true;
+      _error = null;
+    });
     try {
-      final usuario = AuthService.iniciarSesion(_correo.text, _clave.text);
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => HomeScreen(usuario: usuario)),
-      );
-    } on String catch (motivo) {
-      setState(() => _error = motivo);
+      await _authService.iniciarSesion(_correo.text, _clave.text);
+      try {
+        await _usuarioService.miUsuario();
+      } catch (_) {
+        await _authService.cerrarSesion();
+        rethrow;
+      }
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _cargando = false;
+        _error = mensajeDeError(e);
+      });
     }
   }
 
@@ -48,8 +65,10 @@ class _LoginScreenState extends State<LoginScreen> {
         clave: _clave,
         verClave: _verClave,
         error: _error,
+        cargando: _cargando,
         onAlternarClave: () => setState(() => _verClave = !_verClave),
         onEntrar: _entrar,
+        onCrearCuenta: () => Navigator.pushNamed(context, '/registro'),
       ),
     );
   }

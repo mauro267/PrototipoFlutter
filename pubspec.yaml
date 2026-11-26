@@ -1,7 +1,7 @@
 name: rutaviva
-description: Torre de control de Operaciones de RutaViva Logística (prototipo Entrega 2, datos simulados).
+description: Torre de control de Operaciones de RutaViva Logística (Entrega 3, Flutter + Supabase).
 publish_to: "none"
-version: 0.2.0+1
+version: 1.0.0+1
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
@@ -11,7 +11,8 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  # Entrega 3: se agregará supabase_flutter aquí (AD-01, AD-06).
+  supabase_flutter: ^2.18.3
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

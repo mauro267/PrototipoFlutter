@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rutaviva/models/models.dart';
-import 'package:rutaviva/services/simulated_data.dart';
+import 'datos_simulados.dart';
 import 'package:rutaviva/state/app_store.dart';
 
 AppStore nuevo() => AppStore(DatosSimulados.cargar(), DatosSimulados.usuarios().first);
@@ -91,5 +91,15 @@ void main() {
 
     s.eliminarOrden(id);
     expect(s.ordenes.length, antes);
+  });
+
+  test('F-02 CA-5: los indicadores se recalculan por zona', () {
+    final s = nuevo();
+    expect(s.otdDe(null), s.otd);
+    expect(s.coberturaDe(3), closeTo(1 / 3, 1e-9)); // Cali: 1 de 3 vehículos con sensores
+    final porZona = s.zonas.map((z) => s.varadasDe(z.id)).reduce((a, b) => a + b);
+    expect(porZona, s.varadas);
+    final viajesPorZona = s.zonas.map((z) => s.viajesDe(z.id)).reduce((a, b) => a + b);
+    expect(viajesPorZona, s.viajes.length);
   });
 }

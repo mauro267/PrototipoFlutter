@@ -1,0 +1,64 @@
+# Avance de la implementación · RutaViva
+
+Actualizado: 2026-11-26 · Hechas: 5 de 21
+
+Lo escribe la skill `sdd-tecnicas` (tareas nuevas, `[ ]`) y lo marca la skill `sdd-implementar` (`[x]`). Una tarea se marca cuando pasa `flutter analyze` sin errores. La prueba a mano la hace el responsable: si falla, se desmarca y se vuelve a pedir.
+
+Cada integrante implementa y sube (commit) sus propias tareas.
+
+## TS-01 · Cuenta y sesión · Mauricio Marín
+
+- [ ] **T-01** Conectar la app a Supabase con llaves fuera del código, rutas nombradas y ruta inicial según la sesión · CA-4 · depende de: ninguna
+- [x] **T-02** `AuthService` y `UsuarioService` reales; `LoginScreen` con cargando y errores en español · CA-1, CA-2, CA-3 · depende de: T-01
+  - Hecha: 2026-11-26
+  - Archivos: `lib/services/auth_service.dart`, `lib/services/usuario_service.dart` (nuevo), `lib/utils/errores.dart` (nuevo), `lib/models/models.dart`, `lib/screens/login_screen.dart`, `lib/pages/login_page.dart`
+  - Notas: en `login_page.dart` el encabezado (logo + título) se desbordaba 18 px en pantallas angostas y hacía fallar `test/widget_test.dart`; se envolvió el título en `Flexible`. Probado: credenciales malas → «Correo o contraseña incorrectos.». No se probó el mensaje sin internet.
+- [x] **T-03** Crear cuenta: `RegistroScreen`, ruta `/registro` y enlace desde el login · CA-5, CA-6 · depende de: T-02
+  - Hecha: 2026-11-26
+  - Archivos: `lib/screens/registro_screen.dart` (nuevo), `lib/pages/registro_page.dart` (nuevo), `lib/main.dart`, `lib/pages/login_page.dart`
+  - Notas: con *Confirm email* encendido el registro crea la cuenta pero no abre sesión y el panel dice «No hay una sesión iniciada»; hay que apagarlo (TS-01, preparación 3). Probado: cuenta nueva → panel con el nombre y fila en `usuario` (coordinador); correo repetido → «Ese correo ya tiene una cuenta.».
+- [ ] **T-04** `HomeScreen` con el usuario de la sesión y cerrar sesión que limpia la pila · CA-5, CA-7 · depende de: T-02
+
+## TS-02 · Panel de flota · Mauricio Marín
+
+- [x] **T-05** `fromMap` en los modelos y las lecturas de los servicios, con `cargarDatosIniciales()` · CA-1 · depende de: T-01
+  - Hecha: 2026-11-26
+  - Archivos: `lib/models/models.dart`, `lib/services/fleet_service.dart` (nuevo), `lib/services/maintenance_service.dart` (nuevo), `lib/services/order_service.dart` (nuevo), `lib/services/parametro_service.dart` (nuevo), `lib/services/carga_inicial.dart` (nuevo), `lib/state/datos_iniciales.dart` (nuevo)
+  - Notas: nada. `flutter analyze` sin errores y el panel carga los datos de las migraciones.
+- [ ] **T-06** `HomeScreen` crea el `AppStore` con los datos de Supabase, con cargando, error y *Reintentar*; los datos simulados pasan a `test/` · CA-1, CA-4 · depende de: T-04, T-05
+- [x] **T-07** Indicadores recalculados para la zona elegida · CA-5 · depende de: T-06
+  - Hecha: 2026-11-26
+  - Archivos: `lib/state/app_store.dart`, `lib/screens/fleet_screen.dart`
+  - Notas: nada. Probado: zona Cali → 3 vehículos, cobertura 1 de 3, OTD y varadas distintos a *Todas*.
+- [x] **T-08** Meta de OTD guardada en `parametro` · CA-6 · depende de: T-06
+  - Hecha: 2026-11-26
+  - Archivos: `lib/services/parametro_service.dart` (nuevo), `lib/screens/orders_screen.dart`
+  - Notas: nada. Probado: meta 90 → «Meta: 90,0 %», sigue al recargar y `parametro.meta_otd = 0.9`.
+
+## TS-03 · Detalle de vehículo · Daniel Cabal
+
+- [ ] **T-09** Telemetría más reciente al abrir el detalle, con cargando, error, *Reintentar* y *Volver* · CA-1, CA-3, CA-4 · depende de: T-06
+- [ ] **T-10** Deslizar para actualizar eventos e historial del vehículo; el vehículo sin telemetría sigue mostrando solo el preventivo por kilometraje · CA-2, CA-5 · depende de: T-09
+
+## TS-04 · Alertas predictivas de mantenimiento · Juan Felipe Martínez
+
+- [ ] **T-11** Programar y cancelar una alerta guardan en Supabase · CA-2, CA-6 · depende de: T-06
+- [ ] **T-12** Marcar una alerta como atendida sin programar · CA-5 · depende de: T-11
+- [ ] **T-13** Recargar alertas deslizando, con aviso de vacío y error con *Reintentar* · CA-1, CA-3, CA-4 · depende de: T-11
+
+## TS-05 · Registrar mantenimiento · Elías Saldarriaga
+
+- [ ] **T-14** Registrar un mantenimiento en Supabase (vehículo y predicción incluidos); el formulario conserva los datos si falla · CA-1, CA-3, CA-4, CA-5 · depende de: T-06
+- [ ] **T-15** Corregir y eliminar un mantenimiento en Supabase · CA-6, CA-7 · depende de: T-14
+- [ ] **T-16** Revisar que un correctivo sin tipo de falla no se guarde · CA-2 · depende de: T-14
+
+## TS-06 · Órdenes de entrega · Daniel Cabal
+
+- [ ] **T-17** Registrar una orden en Supabase · CA-6 · depende de: T-06
+- [ ] **T-18** Marcar entregada y eliminar una orden en Supabase · CA-7, CA-8 · depende de: T-17
+- [ ] **T-19** Recargar el listado deslizando, con error y *Reintentar*; filtros y aviso sin resultados sobre lo cargado · CA-1, CA-2, CA-3, CA-4, CA-5 · depende de: T-06
+
+## TS-07 · Evidencia de mantenimiento · Mauricio Marín
+
+- [ ] **T-20** Servicios de foto, Storage y evidencia, y el modelo `Evidencia` · CA-2, CA-3, CA-5, CA-6 · depende de: T-05
+- [ ] **T-21** `EvidenciasScreen` con galería, adjuntar y ver en grande, y el botón *Evidencia* en el historial · CA-1, CA-2, CA-4, CA-7 · depende de: T-20, T-06

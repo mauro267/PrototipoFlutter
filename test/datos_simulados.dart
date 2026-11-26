@@ -1,39 +1,8 @@
-import '../models/models.dart';
+import 'package:rutaviva/models/models.dart';
+import 'package:rutaviva/state/datos_iniciales.dart';
 
-/// Conjunto de datos iniciales (listas en memoria) que sigue docs/modelo.md.
-/// En la Entrega 3 esta carga se reemplaza por consultas a Supabase.
-class DatosIniciales {
-  final List<Usuario> usuarios;
-  final List<Zona> zonas;
-  final List<Conductor> conductores;
-  final List<Vehiculo> vehiculos;
-  final List<AsignacionTurno> asignaciones;
-  final List<Viaje> viajes;
-  final List<EventoConduccion> eventos;
-  final List<TelemetriaGps> gps;
-  final List<TelemetriaObd> obd;
-  final List<PrediccionFalla> predicciones;
-  final List<Mantenimiento> mantenimientos;
-  final List<ClienteRetailer> clientes;
-  final List<OrdenEntrega> ordenes;
-
-  DatosIniciales({
-    required this.usuarios,
-    required this.zonas,
-    required this.conductores,
-    required this.vehiculos,
-    required this.asignaciones,
-    required this.viajes,
-    required this.eventos,
-    required this.gps,
-    required this.obd,
-    required this.predicciones,
-    required this.mantenimientos,
-    required this.clientes,
-    required this.ordenes,
-  });
-}
-
+/// Datos simulados de la Entrega 2. Ya no los usa la app (todo sale de Supabase):
+/// solo las pruebas de AppStore, para no depender de la red.
 class DatosSimulados {
   static List<Usuario> usuarios() => const [
         Usuario(id: 1, authUuid: '8f1c2a40-5b7e-4a55-9a1d-0c2f6e7a1b01', nombre: 'Elena Rostova', email: 'coordinador@rutaviva.com', rol: 'coordinador', pais: 'Colombia'),
@@ -228,7 +197,6 @@ class DatosSimulados {
     }
 
     return DatosIniciales(
-      usuarios: usuarios(),
       zonas: zonas,
       conductores: conductores,
       vehiculos: vehiculos,

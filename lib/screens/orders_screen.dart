@@ -4,7 +4,9 @@ import '../components/dialogs.dart';
 import '../components/formulario_orden.dart';
 import '../models/models.dart';
 import '../pages/orders_page.dart';
+import '../services/parametro_service.dart';
 import '../state/app_store.dart';
+import '../utils/errores.dart';
 
 /// Screen anfitriona de órdenes: guarda los filtros y ejecuta crear, entregar
 /// y eliminar sobre el store.
@@ -38,6 +40,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
+  /// F-02 A2: la meta se guarda en Supabase y solo después cambia en el store.
+  Future<void> _guardarMeta(double fraccion) async {
+    try {
+      await ParametroService().guardarMetaOtd(fraccion);
+      _s.cambiarMeta(fraccion);
+      _aviso('Meta de entregas a tiempo actualizada.');
+    } catch (e) {
+      _aviso(mensajeDeError(e));
+    }
+  }
+
   Future<void> _eliminar(OrdenEntrega o) async {
     final ok = await confirmar(
       context,
@@ -66,7 +79,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
           meta: _s.metaOtd,
           cumpleMeta: _s.cumpleMeta,
           conteos: {for (final e in estadosOrden) e: _s.contarOrdenes(e)},
-          onEditarMeta: () => mostrarDialogoMeta(context, actual: _s.metaOtd, onGuardar: _s.cambiarMeta),
+          onEditarMeta: () => mostrarDialogoMeta(context, actual: _s.metaOtd, onGuardar: _guardarMeta),
           onNuevaOrden: _nueva,
           onMarcarEntregada: (o) {
             _s.marcarEntregada(o.id);
