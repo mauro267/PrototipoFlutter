@@ -195,30 +195,39 @@ class AppStore extends ChangeNotifier {
 
   int _siguiente(Iterable<int> ids) => ids.isEmpty ? 1 : ids.reduce(math.max) + 1;
 
-  void agregarMantenimiento(MantenimientoBorrador b) {
-    mantenimientos.add(Mantenimiento(
-      id: _siguiente(mantenimientos.map((m) => m.id)),
-      idVehiculo: b.idVehiculo,
-      idPrediccion: b.idPrediccion,
-      fecha: DateTime.now(),
-      origen: b.origen,
-      tipoFalla: b.tipoFalla,
-      descripcion: b.descripcion,
-      kilometraje: b.kilometraje,
-      costo: b.costo,
-      horasFueraServicio: b.horasFuera,
-      enRuta: b.origen == 'correctivo' && b.enRuta,
-      idUsuarioRegistro: usuario.id,
-    ));
-    final v = vehiculo(b.idVehiculo);
-    v.kilometrajeActual = math.max(v.kilometrajeActual, b.kilometraje);
-    if (b.origen == 'preventivo') v.kmUltimoPreventivo = b.kilometraje;
-    if (b.idPrediccion != null) {
+  void agregarMantenimiento(Mantenimiento guardado) {
+    mantenimientos.insert(0, guardado);
+    final v = vehiculo(guardado.idVehiculo);
+    v.kilometrajeActual = math.max(v.kilometrajeActual, guardado.kilometraje);
+    if (guardado.origen == 'preventivo') v.kmUltimoPreventivo = guardado.kilometraje;
+    if (guardado.idPrediccion != null) {
       for (final p in predicciones) {
-        if (p.id == b.idPrediccion) {
+        if (p.id == guardado.idPrediccion) {
           p.estado = 'confirmada';
-          p.idUsuarioRevision = usuario.id;
+          p.idUsuarioRevision = guardado.idUsuarioRegistro ?? usuario.id;
         }
+      }
+    }
+    notifyListeners();
+  }
+
+  void reemplazarMantenimiento(Mantenimiento m) {
+    final i = mantenimientos.indexWhere((item) => item.id == m.id);
+    if (i >= 0) {
+      mantenimientos[i] = m;
+      notifyListeners();
+    }
+  }
+
+  void quitarMantenimiento(int id) {
+    final i = mantenimientos.indexWhere((m) => m.id == id);
+    if (i < 0) return;
+    final idPred = mantenimientos[i].idPrediccion;
+    mantenimientos.removeAt(i);
+    // Si el mantenimiento había confirmado una predicción, vuelve a estar pendiente.
+    if (idPred != null && !mantenimientos.any((m) => m.idPrediccion == idPred)) {
+      for (final p in predicciones) {
+        if (p.id == idPred && p.estado == 'confirmada') p.estado = 'pendiente';
       }
     }
     notifyListeners();
@@ -228,7 +237,7 @@ class AppStore extends ChangeNotifier {
     final i = mantenimientos.indexWhere((m) => m.id == id);
     if (i < 0) return;
     final m = mantenimientos[i];
-    mantenimientos[i] = Mantenimiento(
+    reemplazarMantenimiento(Mantenimiento(
       id: m.id,
       idVehiculo: b.idVehiculo,
       idPrediccion: m.idPrediccion,
@@ -242,23 +251,10 @@ class AppStore extends ChangeNotifier {
       horasFueraServicio: b.horasFuera,
       enRuta: b.origen == 'correctivo' && b.enRuta,
       idUsuarioRegistro: m.idUsuarioRegistro,
-    );
-    notifyListeners();
+    ));
   }
 
-  void eliminarMantenimiento(int id) {
-    final i = mantenimientos.indexWhere((m) => m.id == id);
-    if (i < 0) return;
-    final idPred = mantenimientos[i].idPrediccion;
-    mantenimientos.removeAt(i);
-    // Si el mantenimiento había confirmado una predicción, vuelve a estar pendiente.
-    if (idPred != null && !mantenimientos.any((m) => m.idPrediccion == idPred)) {
-      for (final p in predicciones) {
-        if (p.id == idPred && p.estado == 'confirmada') p.estado = 'pendiente';
-      }
-    }
-    notifyListeners();
-  }
+  void eliminarMantenimiento(int id) => quitarMantenimiento(id);
 
   void programarAlerta(int idPrediccion, DateTime fecha) {
     for (final p in predicciones) {

@@ -349,6 +349,23 @@ class Mantenimiento {
         enRuta: m['en_ruta'] as bool,
         idUsuarioRegistro: m['id_usuario_registro'] as int?,
       );
+
+  /// Fila nueva para Supabase: sin id_mantenimiento (lo genera la BD), fecha como yyyy-MM-dd.
+  Map<String, dynamic> toMap() => {
+        'id_vehiculo': idVehiculo,
+        'id_prediccion': idPrediccion,
+        'fecha':
+            '${fecha.year.toString().padLeft(4, '0')}-${fecha.month.toString().padLeft(2, '0')}-${fecha.day.toString().padLeft(2, '0')}',
+        'origen': origen,
+        'tipo_falla': tipoFalla,
+        'descripcion': descripcion,
+        'kilometraje': kilometraje,
+        'costo': costo,
+        'moneda': moneda,
+        'horas_fuera_servicio': horasFueraServicio,
+        'en_ruta': enRuta,
+        'id_usuario_registro': idUsuarioRegistro,
+      };
 }
 
 class ClienteRetailer {
