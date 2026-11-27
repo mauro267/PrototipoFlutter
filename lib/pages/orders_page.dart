@@ -53,6 +53,7 @@ class OrdersPage extends StatelessWidget {
     final color = cumpleMeta ? Pal.verde : Pal.rojo;
 
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(20),
       children: [
         EncabezadoPagina(

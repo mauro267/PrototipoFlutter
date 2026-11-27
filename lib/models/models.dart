@@ -1,8 +1,13 @@
 // Modelos Dart alineados con docs/modelo.md (nombres en camelCase).
+// fromMap lee una fila de Supabase (columnas en snake_case).
+
+double _num(dynamic v) => (v as num).toDouble();
+DateTime _fecha(dynamic v) => DateTime.parse(v as String).toLocal();
+DateTime? _fechaOpt(dynamic v) => v == null ? null : _fecha(v);
 
 class Usuario {
   final int id;
-  final String authUuid; // uuid de Supabase Auth (AD-03), simulado en esta entrega
+  final String authUuid; // uuid de Supabase Auth (AD-03)
   final String nombre;
   final String email;
   final String rol; // coordinador | mecanico (v2)
@@ -17,6 +22,26 @@ class Usuario {
     required this.pais,
     this.activo = true,
   });
+
+  factory Usuario.fromMap(Map<String, dynamic> m) => Usuario(
+        id: m['id_usuario'] as int,
+        authUuid: m['auth_uuid'] as String,
+        nombre: m['nombre'] as String,
+        email: m['email'] as String,
+        rol: m['rol'] as String,
+        pais: m['pais'] as String,
+        activo: m['activo'] as bool,
+      );
+
+  /// Fila nueva: sin id_usuario, que lo pone la base de datos.
+  Map<String, dynamic> toMap() => {
+        'auth_uuid': authUuid,
+        'nombre': nombre,
+        'email': email,
+        'rol': rol,
+        'pais': pais,
+        'activo': activo,
+      };
 }
 
 class Zona {
@@ -25,6 +50,9 @@ class Zona {
   final String ciudad;
   final String pais;
   const Zona(this.id, this.nombre, this.ciudad, this.pais);
+
+  factory Zona.fromMap(Map<String, dynamic> m) =>
+      Zona(m['id_zona'] as int, m['nombre'] as String, m['ciudad'] as String, m['pais'] as String);
 }
 
 class Conductor {
@@ -44,6 +72,16 @@ class Conductor {
     required this.idZona,
     this.activo = true,
   });
+
+  factory Conductor.fromMap(Map<String, dynamic> m) => Conductor(
+        id: m['id_conductor'] as int,
+        nombre: m['nombre'] as String,
+        documento: m['documento'] as String,
+        telefono: (m['telefono'] as String?) ?? '',
+        licencia: m['licencia'] as String,
+        idZona: m['id_zona'] as int,
+        activo: m['activo'] as bool,
+      );
 }
 
 /// estadoOperativo: en_ruta | disponible | alerta | varado | mantenimiento
@@ -76,6 +114,21 @@ class Vehiculo {
     required this.kmUltimoPreventivo,
   });
 
+  factory Vehiculo.fromMap(Map<String, dynamic> m) => Vehiculo(
+        id: m['id_vehiculo'] as int,
+        placa: m['placa'] as String,
+        tipo: m['tipo'] as String,
+        marca: m['marca'] as String,
+        modelo: m['modelo'] as String,
+        idZona: m['id_zona'] as int,
+        estadoOperativo: m['estado_operativo'] as String,
+        kilometrajeActual: _num(m['kilometraje_actual']),
+        hasTelemetry: m['has_telemetry'] as bool,
+        fechaInstalacionIot: _fechaOpt(m['fecha_instalacion_iot']),
+        intervaloPreventivoKm: _num(m['intervalo_preventivo_km']),
+        kmUltimoPreventivo: _num(m['km_ultimo_preventivo']),
+      );
+
   String get nombre => '$marca $modelo';
 
   /// Kilómetros recorridos desde el último preventivo.
@@ -91,6 +144,9 @@ class AsignacionTurno {
   final int idVehiculo;
   final DateTime fecha;
   const AsignacionTurno(this.id, this.idConductor, this.idVehiculo, this.fecha);
+
+  factory AsignacionTurno.fromMap(Map<String, dynamic> m) => AsignacionTurno(
+      m['id_asignacion'] as int, m['id_conductor'] as int, m['id_vehiculo'] as int, _fecha(m['fecha']));
 }
 
 /// estado: en_curso | completado
@@ -115,6 +171,18 @@ class Viaje {
     required this.paradasCompletadas,
     required this.estado,
   });
+
+  factory Viaje.fromMap(Map<String, dynamic> m) => Viaje(
+        id: m['id_viaje'] as int,
+        codigo: m['codigo'] as String,
+        idAsignacion: m['id_asignacion'] as int,
+        fechaInicio: _fecha(m['fecha_inicio']),
+        fechaFin: _fechaOpt(m['fecha_fin']),
+        kmRecorridos: _num(m['km_recorridos']),
+        paradasTotales: m['paradas_totales'] as int,
+        paradasCompletadas: m['paradas_completadas'] as int,
+        estado: m['estado'] as String,
+      );
 }
 
 class EventoConduccion {
@@ -136,6 +204,17 @@ class EventoConduccion {
     required this.unidad,
     required this.ubicacion,
   });
+
+  factory EventoConduccion.fromMap(Map<String, dynamic> m) => EventoConduccion(
+        id: m['id_evento'] as int,
+        idVehiculo: m['id_vehiculo'] as int,
+        idViaje: m['id_viaje'] as int?,
+        fechaHora: _fecha(m['fecha_hora']),
+        tipo: m['tipo'] as String,
+        magnitud: _num(m['magnitud']),
+        unidad: m['unidad'] as String,
+        ubicacion: (m['ubicacion'] as String?) ?? '',
+      );
 }
 
 class TelemetriaGps {
@@ -151,6 +230,14 @@ class TelemetriaGps {
     required this.lon,
     required this.velocidad,
   });
+
+  factory TelemetriaGps.fromMap(Map<String, dynamic> m) => TelemetriaGps(
+        idVehiculo: m['id_vehiculo'] as int,
+        fechaHora: _fecha(m['fecha_hora']),
+        lat: _num(m['lat']),
+        lon: _num(m['lon']),
+        velocidad: _num(m['velocidad']),
+      );
 }
 
 class TelemetriaObd {
@@ -168,6 +255,15 @@ class TelemetriaObd {
     required this.rpm,
     required this.nivelCombustible,
   });
+
+  factory TelemetriaObd.fromMap(Map<String, dynamic> m) => TelemetriaObd(
+        idVehiculo: m['id_vehiculo'] as int,
+        fechaHora: _fecha(m['fecha_hora']),
+        codigoFalla: m['codigo_falla'] as String?,
+        tempMotor: _num(m['temp_motor']),
+        rpm: _num(m['rpm']),
+        nivelCombustible: _num(m['nivel_combustible']),
+      );
 }
 
 /// estado: pendiente | programada | confirmada
@@ -193,6 +289,18 @@ class PrediccionFalla {
     this.fechaProgramada,
     this.idUsuarioRevision,
   });
+
+  factory PrediccionFalla.fromMap(Map<String, dynamic> m) => PrediccionFalla(
+        id: m['id_prediccion'] as int,
+        idVehiculo: m['id_vehiculo'] as int,
+        fechaPrediccion: _fecha(m['fecha_prediccion']),
+        componente: m['componente'] as String,
+        probabilidad: _num(m['probabilidad']),
+        fechaLimiteMantenimiento: _fecha(m['fecha_limite_mantenimiento']),
+        estado: m['estado'] as String,
+        fechaProgramada: _fechaOpt(m['fecha_programada']),
+        idUsuarioRevision: m['id_usuario_revision'] as int?,
+      );
 }
 
 /// origen: preventivo | correctivo
@@ -209,7 +317,7 @@ class Mantenimiento {
   final String moneda;
   final double horasFueraServicio;
   final bool enRuta;
-  final int idUsuarioRegistro;
+  final int? idUsuarioRegistro;
   const Mantenimiento({
     required this.id,
     required this.idVehiculo,
@@ -225,6 +333,22 @@ class Mantenimiento {
     required this.enRuta,
     required this.idUsuarioRegistro,
   });
+
+  factory Mantenimiento.fromMap(Map<String, dynamic> m) => Mantenimiento(
+        id: m['id_mantenimiento'] as int,
+        idVehiculo: m['id_vehiculo'] as int,
+        idPrediccion: m['id_prediccion'] as int?,
+        fecha: _fecha(m['fecha']),
+        origen: m['origen'] as String,
+        tipoFalla: m['tipo_falla'] as String,
+        descripcion: m['descripcion'] as String,
+        kilometraje: _num(m['kilometraje']),
+        costo: _num(m['costo']),
+        moneda: m['moneda'] as String,
+        horasFueraServicio: _num(m['horas_fuera_servicio']),
+        enRuta: m['en_ruta'] as bool,
+        idUsuarioRegistro: m['id_usuario_registro'] as int?,
+      );
 }
 
 class ClienteRetailer {
@@ -235,6 +359,9 @@ class ClienteRetailer {
   final String formatoOrigen;
   const ClienteRetailer(
       this.id, this.nombre, this.pais, this.canalIntegracion, this.formatoOrigen);
+
+  factory ClienteRetailer.fromMap(Map<String, dynamic> m) => ClienteRetailer(m['id_cliente'] as int,
+      m['nombre'] as String, m['pais'] as String, m['canal_integracion'] as String, m['formato_origen'] as String);
 }
 
 /// estado: a_tiempo | en_camino | en_riesgo | retrasada | pendiente
@@ -261,6 +388,56 @@ class OrdenEntrega {
     this.fechaEntregaReal,
     required this.estado,
   });
+
+  factory OrdenEntrega.fromMap(Map<String, dynamic> m) => OrdenEntrega(
+        id: m['id_orden'] as int,
+        codigo: m['codigo'] as String,
+        idCliente: m['id_cliente'] as int,
+        idViaje: m['id_viaje'] as int?,
+        direccionDestino: m['direccion_destino'] as String,
+        ciudad: m['ciudad'] as String,
+        fechaCreacion: _fecha(m['fecha_creacion']),
+        fechaPromesa: _fecha(m['fecha_promesa']),
+        fechaEntregaReal: _fechaOpt(m['fecha_entrega_real']),
+        estado: m['estado'] as String,
+      );
+
+  /// Fila nueva: sin id_orden, que lo pone la base de datos.
+  Map<String, dynamic> toMap() => {
+        'codigo': codigo,
+        'id_cliente': idCliente,
+        'id_viaje': idViaje,
+        'direccion_destino': direccionDestino,
+        'ciudad': ciudad,
+        'fecha_creacion': fechaCreacion.toUtc().toIso8601String(),
+        'fecha_promesa': fechaPromesa.toUtc().toIso8601String(),
+        'fecha_entrega_real': fechaEntregaReal?.toUtc().toIso8601String(),
+        'estado': estado,
+      };
+}
+
+/// Foto de evidencia de un mantenimiento (RF-13), guardada en el bucket evidencias.
+class Evidencia {
+  final int id;
+  final int idMantenimiento;
+  final String ruta;
+  final String url;
+  final DateTime fechaSubida;
+  const Evidencia({
+    required this.id,
+    required this.idMantenimiento,
+    required this.ruta,
+    required this.url,
+    required this.fechaSubida,
+  });
+
+  factory Evidencia.fromMap(Map<String, dynamic> m) => Evidencia(
+        id: m['id_evidencia'] as int,
+        idMantenimiento: m['id_mantenimiento'] as int,
+        ruta: m['ruta'] as String,
+        url: m['url'] as String,
+        fechaSubida: _fecha(m['fecha_subida']),
+      );
 }
 
 /// Datos que captura el formulario de mantenimiento (crear o editar).

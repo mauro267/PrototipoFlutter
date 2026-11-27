@@ -1,23 +1,23 @@
-import '../models/models.dart';
-import 'simulated_data.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Autenticación simulada contra la tabla USUARIO (Entrega 2).
-/// En la Entrega 3 se reemplaza por Supabase Auth (AD-03).
+/// Llamadas a Supabase Auth: crear cuenta, entrar, salir y sesión (F-01).
 class AuthService {
-  static const claveDemo = '123456';
+  final SupabaseClient _client = Supabase.instance.client;
 
-  /// Devuelve el usuario o lanza un [String] con el motivo del rechazo.
-  static Usuario iniciarSesion(String correo, String clave) {
-    final email = correo.trim().toLowerCase();
-    for (final u in DatosSimulados.usuarios()) {
-      if (u.email != email) continue;
-      if (clave != claveDemo) throw 'Correo o contraseña incorrectos.';
-      if (!u.activo) throw 'Este usuario está inactivo.';
-      if (u.rol != 'coordinador') {
-        throw 'Esta fase solo permite el rol Coordinador de Operaciones.';
-      }
-      return u;
-    }
-    throw 'Correo o contraseña incorrectos.';
+  /// Crea la cuenta y devuelve el uuid que le dio Auth.
+  Future<String> registrar(String correo, String clave) async {
+    final r = await _client.auth.signUp(email: correo.trim().toLowerCase(), password: clave);
+    return r.user!.id;
   }
+
+  Future<void> iniciarSesion(String correo, String clave) async {
+    await _client.auth.signInWithPassword(email: correo.trim().toLowerCase(), password: clave);
+  }
+
+  Future<void> cerrarSesion() async {
+    await _client.auth.signOut();
+  }
+
+  /// Lee la sesión guardada en el dispositivo, sin ir a internet.
+  bool haySesion() => _client.auth.currentSession != null;
 }

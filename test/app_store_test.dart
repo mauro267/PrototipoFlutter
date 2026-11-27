@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rutaviva/models/models.dart';
-import 'package:rutaviva/services/simulated_data.dart';
+import 'datos_simulados.dart';
 import 'package:rutaviva/state/app_store.dart';
 
 AppStore nuevo() => AppStore(DatosSimulados.cargar(), DatosSimulados.usuarios().first);
@@ -74,22 +74,68 @@ void main() {
     expect(s.predicciones.firstWhere((p) => p.id == 1).estado, 'pendiente');
   });
 
-  test('crear, entregar y eliminar una orden', () {
+  test('el store refleja una orden guardada, entregada, eliminada y recargada', () {
     final s = nuevo();
     final antes = s.ordenes.length;
-    s.agregarOrden(OrdenBorrador(
+    final orden = OrdenEntrega(
+      id: 9999,
+      codigo: 'RV-99999',
       idCliente: 1,
-      direccion: 'Calle 1 # 2-3',
+      direccionDestino: 'Calle 1 # 2-3',
       ciudad: 'Bogotá',
+      fechaCreacion: DateTime.now(),
       fechaPromesa: DateTime.now().add(const Duration(days: 1)),
-    ));
+      estado: 'pendiente',
+    );
+    s.agregarOrden(orden);
     expect(s.ordenes.length, antes + 1);
-    final id = s.ordenes.last.id;
 
-    s.marcarEntregada(id);
-    expect(s.ordenes.last.estado, 'a_tiempo');
+    s.reemplazarOrden(OrdenEntrega(
+      id: orden.id,
+      codigo: orden.codigo,
+      idCliente: orden.idCliente,
+      direccionDestino: orden.direccionDestino,
+      ciudad: orden.ciudad,
+      fechaCreacion: orden.fechaCreacion,
+      fechaPromesa: orden.fechaPromesa,
+      fechaEntregaReal: DateTime.now(),
+      estado: 'a_tiempo',
+    ));
+    expect(s.ordenes.firstWhere((o) => o.id == 9999).estado, 'a_tiempo');
 
-    s.eliminarOrden(id);
+    s.quitarOrden(9999);
     expect(s.ordenes.length, antes);
+
+    s.reemplazarOrdenes([orden]);
+    expect(s.ordenes.length, 1);
+  });
+
+  test('TS-03: la telemetría recargada queda como la lectura actual del vehículo', () {
+    final s = nuevo();
+    final nueva = TelemetriaObd(
+      idVehiculo: 1,
+      fechaHora: DateTime.now(),
+      codigoFalla: null,
+      tempMotor: 99,
+      rpm: 2000,
+      nivelCombustible: 50,
+    );
+    s.reemplazarTelemetria(1, s.gpsDe(1), nueva);
+    expect(s.obdDe(1)!.tempMotor, 99);
+    expect(s.obd.where((t) => t.idVehiculo == 1).length, 1);
+
+    s.reemplazarDelVehiculo(1, const [], const []);
+    expect(s.eventosDe(1), isEmpty);
+    expect(s.historialDe(1), isEmpty);
+  });
+
+  test('F-02 CA-5: los indicadores se recalculan por zona', () {
+    final s = nuevo();
+    expect(s.otdDe(null), s.otd);
+    expect(s.coberturaDe(3), closeTo(1 / 3, 1e-9)); // Cali: 1 de 3 vehículos con sensores
+    final porZona = s.zonas.map((z) => s.varadasDe(z.id)).reduce((a, b) => a + b);
+    expect(porZona, s.varadas);
+    final viajesPorZona = s.zonas.map((z) => s.viajesDe(z.id)).reduce((a, b) => a + b);
+    expect(viajesPorZona, s.viajes.length);
   });
 }

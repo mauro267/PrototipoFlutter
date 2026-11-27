@@ -30,6 +30,7 @@ class MaintenanceScreen extends StatelessWidget {
           onCancelarProgramacion: (p) => acciones.cancelarProgramacion(context, p),
           onEditar: (m) => acciones.editar(context, m),
           onEliminar: (m) => acciones.eliminar(context, m),
+          onEvidencia: (m) => Navigator.pushNamed(context, '/evidencias', arguments: m),
         );
       },
     );

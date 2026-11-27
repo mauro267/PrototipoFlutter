@@ -7,10 +7,11 @@ import 'app_button.dart';
 import 'campos.dart';
 
 /// Formulario para crear una orden de entrega (modelo canónico, RF-08).
+/// `onGuardar` devuelve true si la orden quedó guardada; solo entonces se cierra.
 Future<void> mostrarFormularioOrden(
   BuildContext context, {
   required List<ClienteRetailer> clientes,
-  required ValueChanged<OrdenBorrador> onGuardar,
+  required Future<bool> Function(OrdenBorrador) onGuardar,
 }) {
   return showDialog<void>(
     context: context,
@@ -20,7 +21,7 @@ Future<void> mostrarFormularioOrden(
 
 class _FormularioOrden extends StatefulWidget {
   final List<ClienteRetailer> clientes;
-  final ValueChanged<OrdenBorrador> onGuardar;
+  final Future<bool> Function(OrdenBorrador) onGuardar;
   const _FormularioOrden({required this.clientes, required this.onGuardar});
 
   @override
@@ -33,6 +34,7 @@ class _FormularioOrdenState extends State<_FormularioOrden> {
   final _direccion = TextEditingController();
   final _ciudad = TextEditingController();
   late DateTime _fecha = _manana();
+  bool _guardando = false;
 
   static DateTime _manana() {
     final h = DateTime.now().add(const Duration(days: 1));
@@ -61,15 +63,22 @@ class _FormularioOrdenState extends State<_FormularioOrden> {
 
   String? _obligatorio(String? s) => (s == null || s.trim().isEmpty) ? 'Obligatorio' : null;
 
-  void _guardar() {
+  Future<void> _guardar() async {
     if (!_form.currentState!.validate()) return;
-    widget.onGuardar(OrdenBorrador(
+    setState(() => _guardando = true);
+    final ok = await widget.onGuardar(OrdenBorrador(
       idCliente: _idCliente,
       direccion: _direccion.text.trim(),
       ciudad: _ciudad.text.trim(),
       fechaPromesa: DateTime(_fecha.year, _fecha.month, _fecha.day, 17),
     ));
-    Navigator.of(context).pop();
+    if (!mounted) return;
+    // Si falló, el formulario sigue abierto con lo que se escribió.
+    if (ok) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() => _guardando = false);
+    }
   }
 
   @override
@@ -113,8 +122,8 @@ class _FormularioOrdenState extends State<_FormularioOrden> {
         ),
       ),
       actions: [
-        AppButton('Cancelar', tipo: TipoBoton.texto, onPressed: () => Navigator.of(context).pop()),
-        AppButton('Crear orden', onPressed: _guardar),
+        AppButton('Cancelar', tipo: TipoBoton.texto, onPressed: _guardando ? null : () => Navigator.of(context).pop()),
+        AppButton(_guardando ? 'Guardando…' : 'Crear orden', onPressed: _guardando ? null : _guardar),
       ],
     );
   }

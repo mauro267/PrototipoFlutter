@@ -5,19 +5,22 @@ import '../theme.dart';
 import '../utils/format.dart';
 import 'basicos.dart';
 
-/// Fila del historial de mantenimiento con acciones de editar y eliminar.
+/// Fila del historial de mantenimiento con acciones de evidencia, editar y eliminar.
 /// [etiquetaVehiculo] es opcional: se omite en el detalle de un vehículo.
+/// [onEvidencia] es opcional: sin él no se muestra el botón de fotos (F-07).
 class FilaMantenimiento extends StatelessWidget {
   final Mantenimiento mantenimiento;
   final String? etiquetaVehiculo;
   final VoidCallback onEditar;
   final VoidCallback onEliminar;
+  final Function()? onEvidencia;
   const FilaMantenimiento({
     super.key,
     required this.mantenimiento,
     this.etiquetaVehiculo,
     required this.onEditar,
     required this.onEliminar,
+    this.onEvidencia,
   });
 
   @override
@@ -47,6 +50,11 @@ class FilaMantenimiento extends StatelessWidget {
             ),
           ),
           Text(fmtCop(m.costo), style: const TextStyle(fontWeight: FontWeight.w700)),
+          if (onEvidencia != null)
+            IconButton(
+                tooltip: 'Evidencia',
+                icon: const Icon(Icons.photo_library_outlined, size: 20),
+                onPressed: onEvidencia),
           IconButton(tooltip: 'Editar', icon: const Icon(Icons.edit_outlined, size: 20), onPressed: onEditar),
           IconButton(
               tooltip: 'Eliminar',

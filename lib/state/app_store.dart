@@ -3,11 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 
 import '../models/models.dart';
-import '../services/simulated_data.dart';
+import 'datos_iniciales.dart';
 
-/// Datos de la app en memoria y sus operaciones (crear, editar, eliminar).
-/// Lo crea y posee la pantalla anfitriona (HomeScreen); las Pages nunca lo ven:
-/// las Screens le piden datos y se los pasan a las Pages junto con callbacks.
+/// Estado de la sesión: los datos que llegaron de Supabase al entrar y los
+/// indicadores que se calculan sobre ellos. Lo crea y posee HomeScreen con lo que
+/// devuelve cargarDatosIniciales(); las Pages nunca lo ven: las Screens le piden
+/// datos y se los pasan a las Pages junto con callbacks.
 class AppStore extends ChangeNotifier {
   AppStore(DatosIniciales d, this.usuario)
       : zonas = d.zonas,
@@ -21,7 +22,8 @@ class AppStore extends ChangeNotifier {
         predicciones = d.predicciones,
         mantenimientos = d.mantenimientos,
         clientes = d.clientes,
-        ordenes = d.ordenes;
+        ordenes = d.ordenes,
+        metaOtd = d.metaOtd;
 
   final Usuario usuario;
   final List<Zona> zonas;
@@ -37,8 +39,8 @@ class AppStore extends ChangeNotifier {
   final List<ClienteRetailer> clientes;
   final List<OrdenEntrega> ordenes;
 
-  /// Meta de OTD configurable (RF-09), como fracción (0,95 = 95 %).
-  double metaOtd = 0.95;
+  /// Meta de OTD configurable (RF-09), como fracción (0,95 = 95 %). Se guarda en la tabla parametro.
+  double metaOtd;
 
   // ---------------------------------------------------------------- consultas
 
@@ -137,26 +139,57 @@ class AppStore extends ChangeNotifier {
   int contarOrdenes(String estado) => ordenes.where((o) => o.estado == estado).length;
 
   // ---------------------------------------------------------------- indicadores
+  // Cada indicador acepta una zona (F-02 CA-5); con null se calcula para toda la flota.
+
+  Set<int> _vehiculosDe(int? idZona) => vehiculosDeZona(idZona).map((v) => v.id).toSet();
+
+  /// Ids de los viajes hechos con vehículos de la zona.
+  Set<int> _viajesDe(int? idZona) {
+    final veh = _vehiculosDe(idZona);
+    final asig = asignaciones.where((a) => veh.contains(a.idVehiculo)).map((a) => a.id).toSet();
+    return viajes.where((v) => asig.contains(v.idAsignacion)).map((v) => v.id).toSet();
+  }
+
+  /// RF-07: fallas no planificadas en ruta.
+  int varadasDe(int? idZona) {
+    final veh = _vehiculosDe(idZona);
+    return mantenimientos.where((m) => m.enRuta && m.origen == 'correctivo' && veh.contains(m.idVehiculo)).length;
+  }
+
+  int viajesDe(int? idZona) => idZona == null ? viajes.length : _viajesDe(idZona).length;
 
   /// RF-07: fallas no planificadas en ruta sobre el total de viajes.
-  int get varadas =>
-      mantenimientos.where((m) => m.enRuta && m.origen == 'correctivo').length;
-
-  double get tasaVaradas => viajes.isEmpty ? 0 : varadas / viajes.length;
+  double tasaVaradasDe(int? idZona) {
+    final total = viajesDe(idZona);
+    return total == 0 ? 0 : varadasDe(idZona) / total;
+  }
 
   /// RF-12: vehículos con sensores sobre el total de la flota.
-  int get conTelemetria => vehiculos.where((v) => v.hasTelemetry).length;
+  int conTelemetriaDe(int? idZona) => vehiculosDeZona(idZona).where((v) => v.hasTelemetry).length;
 
-  double get cobertura => vehiculos.isEmpty ? 0 : conTelemetria / vehiculos.length;
+  double coberturaDe(int? idZona) {
+    final total = vehiculosDeZona(idZona).length;
+    return total == 0 ? 0 : conTelemetriaDe(idZona) / total;
+  }
 
-  /// RF-09: OTD = entregas a tiempo / (a tiempo + retrasadas).
-  double get otd {
-    final aTiempo = contarOrdenes('a_tiempo');
-    final total = aTiempo + contarOrdenes('retrasada');
+  /// RF-09: OTD = entregas a tiempo / (a tiempo + retrasadas). Por zona cuentan las
+  /// órdenes cuyo viaje se hizo con un vehículo de esa zona.
+  double otdDe(int? idZona) {
+    final viajesZona = idZona == null ? null : _viajesDe(idZona);
+    final sel = ordenes.where((o) => viajesZona == null || (o.idViaje != null && viajesZona.contains(o.idViaje)));
+    final aTiempo = sel.where((o) => o.estado == 'a_tiempo').length;
+    final total = aTiempo + sel.where((o) => o.estado == 'retrasada').length;
     return total == 0 ? 0 : aTiempo / total;
   }
 
-  bool get cumpleMeta => otd >= metaOtd;
+  bool cumpleMetaDe(int? idZona) => otdDe(idZona) >= metaOtd;
+
+  int get varadas => varadasDe(null);
+  double get tasaVaradas => tasaVaradasDe(null);
+  int get conTelemetria => conTelemetriaDe(null);
+  double get cobertura => coberturaDe(null);
+  double get otd => otdDe(null);
+  bool get cumpleMeta => cumpleMetaDe(null);
 
   // ---------------------------------------------------------------- mantenimiento (RF-02, RF-03)
 
@@ -250,44 +283,55 @@ class AppStore extends ChangeNotifier {
 
   // ---------------------------------------------------------------- órdenes (RF-08, RF-10)
 
-  void agregarOrden(OrdenBorrador b) {
-    final id = _siguiente(ordenes.map((o) => o.id));
-    ordenes.add(OrdenEntrega(
-      id: id,
-      codigo: 'RV-${88291 + id - 1}',
-      idCliente: b.idCliente,
-      direccionDestino: b.direccion,
-      ciudad: b.ciudad,
-      fechaCreacion: DateTime.now(),
-      fechaPromesa: b.fechaPromesa,
-      estado: 'pendiente',
-    ));
+  // Las órdenes llegan ya guardadas por OrderService: el store solo refleja lo
+  // que Supabase confirmó.
+
+  void agregarOrden(OrdenEntrega guardada) {
+    ordenes.add(guardada);
     notifyListeners();
   }
 
-  /// Marca una orden como entregada ahora; queda a tiempo o retrasada según la promesa.
-  void marcarEntregada(int idOrden) {
-    final i = ordenes.indexWhere((o) => o.id == idOrden);
+  void reemplazarOrden(OrdenEntrega guardada) {
+    final i = ordenes.indexWhere((o) => o.id == guardada.id);
     if (i < 0) return;
-    final o = ordenes[i];
-    final ahora = DateTime.now();
-    ordenes[i] = OrdenEntrega(
-      id: o.id,
-      codigo: o.codigo,
-      idCliente: o.idCliente,
-      idViaje: o.idViaje,
-      direccionDestino: o.direccionDestino,
-      ciudad: o.ciudad,
-      fechaCreacion: o.fechaCreacion,
-      fechaPromesa: o.fechaPromesa,
-      fechaEntregaReal: ahora,
-      estado: ahora.isAfter(o.fechaPromesa) ? 'retrasada' : 'a_tiempo',
-    );
+    ordenes[i] = guardada;
     notifyListeners();
   }
 
-  void eliminarOrden(int id) {
+  void quitarOrden(int id) {
     ordenes.removeWhere((o) => o.id == id);
+    notifyListeners();
+  }
+
+  /// T-19: el listado recargado desde Supabase reemplaza al que había.
+  void reemplazarOrdenes(List<OrdenEntrega> nuevas) {
+    ordenes
+      ..clear()
+      ..addAll(nuevas);
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------- detalle de vehículo (TS-03)
+
+  /// T-09: deja como lectura actual del vehículo la última que llegó de Supabase.
+  void reemplazarTelemetria(int idVehiculo, TelemetriaGps? nuevoGps, TelemetriaObd? nuevoObd) {
+    gps.removeWhere((t) => t.idVehiculo == idVehiculo);
+    obd.removeWhere((t) => t.idVehiculo == idVehiculo);
+    // Las listas van de la lectura más reciente a la más antigua: la nueva va adelante.
+    if (nuevoGps != null) gps.insert(0, nuevoGps);
+    if (nuevoObd != null) obd.insert(0, nuevoObd);
+    notifyListeners();
+  }
+
+  /// T-10: reemplaza los eventos y el historial de un vehículo por los recargados.
+  void reemplazarDelVehiculo(
+      int idVehiculo, List<EventoConduccion> nuevosEventos, List<Mantenimiento> nuevosMantenimientos) {
+    eventos
+      ..removeWhere((e) => e.idVehiculo == idVehiculo)
+      ..addAll(nuevosEventos);
+    mantenimientos
+      ..removeWhere((m) => m.idVehiculo == idVehiculo)
+      ..addAll(nuevosMantenimientos);
     notifyListeners();
   }
 

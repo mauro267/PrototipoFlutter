@@ -27,6 +27,7 @@ class VehicleDetailPage extends StatelessWidget {
   final ValueChanged<PrediccionFalla> onCancelarProgramacion;
   final ValueChanged<Mantenimiento> onEditar;
   final ValueChanged<Mantenimiento> onEliminar;
+  final Function(Mantenimiento)? onEvidencia;
 
   const VehicleDetailPage({
     super.key,
@@ -43,12 +44,14 @@ class VehicleDetailPage extends StatelessWidget {
     required this.onCancelarProgramacion,
     required this.onEditar,
     required this.onEliminar,
+    this.onEvidencia,
   });
 
   @override
   Widget build(BuildContext context) {
     final v = vehiculo;
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
       children: [
         _encabezado(),
@@ -71,6 +74,7 @@ class VehicleDetailPage extends StatelessWidget {
                 mantenimiento: m,
                 onEditar: () => onEditar(m),
                 onEliminar: () => onEliminar(m),
+                onEvidencia: onEvidencia == null ? null : () => onEvidencia!(m),
               ),
             ),
       ],
@@ -121,7 +125,7 @@ class VehicleDetailPage extends StatelessWidget {
     return [
       const TituloSeccion('Telemetría reciente'),
       if (o == null || g == null)
-        const EstadoVacio('Aún no hay lecturas para este vehículo.')
+        const EstadoVacio('No hay telemetría reciente para este vehículo.')
       else ...[
         Rejilla(
           minAncho: 220,

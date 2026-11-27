@@ -1,10 +1,10 @@
 ---
 documento: prd
 proyecto: RutaViva
-version: 0.1.1
-fecha: 2026-11-06
-estado: borrador
-autores: [Mauricio Marín, equipo por confirmar]
+version: 0.3.0
+fecha: 2026-11-26
+estado: aprobado
+autores: [Mauricio Marín, Elías Saldarriaga, Juan Felipe Martínez, Daniel Cabal]
 ---
 
 # PRD · RutaViva
@@ -22,8 +22,9 @@ que atiende (cada uno con su propia integración de pedidos).
 ## Usuarios
 
 - **Coordinador(a) de Operaciones**: entra todos los días a revisar el estado de la
-  flota, atender las alertas de mantenimiento predictivo, agendar intervenciones y
-  revisar los indicadores de entrega y salud del parque vehicular.
+  flota, atender las alertas de mantenimiento predictivo, agendar intervenciones,
+  registrar los mantenimientos con su evidencia y revisar los indicadores de entrega
+  y salud del parque vehicular.
 
 ## Objetivos
 
@@ -42,12 +43,15 @@ que atiende (cada uno con su propia integración de pedidos).
   los indicadores agregados. *Se cumple si* esos vehículos quedan identificados
   explícitamente y siguen un esquema de mantenimiento preventivo por kilometraje,
   separado de las vistas predictivas.
+- **O-06** Dejar evidencia verificable de los mantenimientos realizados. *Se cumple
+  si* cada mantenimiento registrado puede tener fotos de evidencia que se consultan
+  desde su historial.
 
 ## Alcance
 
 ### Incluye
 
-- Inicio de sesión del coordinador.
+- Creación de cuenta, inicio y cierre de sesión del coordinador.
 - Panel principal con los indicadores clave (OTD, tasa de varadas, cobertura de
   telemetría) agrupados por zona.
 - Detalle de un vehículo, con telemetría reciente cuando la tiene, y sin ella
@@ -55,46 +59,53 @@ que atiende (cada uno con su propia integración de pedidos).
   kilometraje) cuando no la tiene.
 - Alertas predictivas de falla, con acción para programar mantenimiento.
 - Registro de un mantenimiento realizado (preventivo o correctivo).
+- Fotos de evidencia de cada mantenimiento.
 - Listado de órdenes de entrega con su estado, filtrable por cliente y estado.
 
 ### No incluye
 
 - Una app o vista para los conductores.
-- La integración real (API/SFTP) con los sistemas de los cinco retailers: se
-  trabaja con datos de ejemplo que siguen el modelo canónico de orden.
-- Notificaciones push o por correo.
-- Edge Functions, Realtime o seguridad por filas (RLS) de Supabase: el curso deja
-  esto fuera para mantener la app ligera (ver `docs/architectural_spine.md`).
+- La integración real con los sistemas de los cinco retailers: se trabaja con datos
+  de ejemplo que siguen el modelo canónico de orden.
+- Notificaciones push o por correo, y cualquier proceso que corra solo, sin que el
+  coordinador lo pida.
+- Permisos distintos por usuario sobre los datos: todos los coordinadores ven la
+  misma flota.
 - Un motor de machine learning real para generar las predicciones de falla: se
   muestran y se gestionan, pero no se calculan dentro de esta app.
 
 ## Restricciones
 
 - Entregas del curso: Entrega 1 (contexto, base de datos y prototipo, sin código),
-  Entrega 2 (prototipo no funcional en Flutter, con datos simulados), Entrega 3
-  (app final conectada a Supabase).
-- Plataformas: Flutter web y Android.
+  Entrega 2 (prototipo no funcional, con datos simulados), Entrega 3 (app final con
+  datos persistentes, exhibida por el equipo).
+- Plataformas: web y Android.
 - El modelo de datos ya fue diseñado en el trabajo previo del Caso 4 (ver
   `docs/modelo.md`, basado en `MR_RutaViva.pdf`) y se reutiliza aquí.
 
 ## Preguntas abiertas
 
-- ¿Se necesita Storage de Supabase (por ejemplo, evidencia fotográfica de un
-  mantenimiento), o la app no maneja archivos por ahora?
-- ¿De dónde salen los datos de ejemplo para telemetría y predicciones: un dataset
-  fijo que carga el equipo, o se generan aleatoriamente?
+- Ninguna.
 
 ## Decisiones confirmadas
 
 - Equipo: Mauricio Marín, Elías Saldarriaga, Juan Felipe Martínez, Daniel Cabal
   (el mismo del Caso 4).
 - Un único rol de usuario para esta fase: Coordinador(a) de Operaciones. Un rol de
-  Mecánico (con acceso solo a mantenimiento) queda como posible v2 — el modelo de
-  datos ya lo deja abierto con `USUARIO.rol` (ver `docs/modelo.md` y *Diferido* en
-  `docs/architectural_spine.md`).
+  Mecánico (con acceso solo a mantenimiento) queda como posible v2.
+- Cualquier persona del área puede crear su cuenta desde la app; la cuenta nueva
+  queda con el rol de coordinador.
+- Los archivos que maneja la app son las fotos de evidencia de los mantenimientos.
+- Los datos de ejemplo (flota, telemetría, predicciones y órdenes) son un conjunto
+  fijo que carga el equipo; no se generan al azar.
 
 ## Historial
 
+- 0.3.0 · 2026-11-26 · Entrega 3. Se agregan O-06 (evidencia de mantenimientos) y la
+  creación de cuenta y el cierre de sesión al alcance; se resuelven las dos preguntas
+  abiertas; se quitan los nombres de tecnología del alcance y de las restricciones,
+  según el dictamen del taller.
+- 0.1.2 · 2026-11-06 · Se corrigió el campo de autores del encabezado para que coincida con el equipo confirmado.
+- 0.1.1 · 2026-11-06 · Equipo y alcance de roles confirmados por el equipo.
 - 0.1.0 · 2026-11-06 · Primera versión, redactada a partir del contexto del Caso 4,
   el modelo de datos y el prototipo en Stitch.
-- 0.1.1 · 2026-11-06 · Equipo y alcance de roles confirmados por el equipo.
