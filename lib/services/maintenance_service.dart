@@ -15,4 +15,14 @@ class MaintenanceService {
     final filas = await _client.from('mantenimiento').select().order('fecha', ascending: false);
     return filas.map(Mantenimiento.fromMap).toList();
   }
+
+  /// TS-03: el historial de un vehículo, del más reciente al más antiguo.
+  Future<List<Mantenimiento>> getMantenimientosDe(int idVehiculo) async {
+    final filas = await _client
+        .from('mantenimiento')
+        .select()
+        .eq('id_vehiculo', idVehiculo)
+        .order('fecha', ascending: false);
+    return filas.map(Mantenimiento.fromMap).toList();
+  }
 }

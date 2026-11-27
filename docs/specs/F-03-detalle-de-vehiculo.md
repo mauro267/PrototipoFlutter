@@ -3,7 +3,7 @@ id: F-03
 titulo: Detalle de vehículo
 version: 1.0.0
 fecha: 2026-11-26
-estado: aprobada
+estado: implementada
 autores: [Mauricio Marín, Elías Saldarriaga, Juan Felipe Martínez, Daniel Cabal]
 requisitos: [RF-05, RF-06]
 depende_de: [F-02]

@@ -51,6 +51,7 @@ class VehicleDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = vehiculo;
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
       children: [
         _encabezado(),
@@ -124,7 +125,7 @@ class VehicleDetailPage extends StatelessWidget {
     return [
       const TituloSeccion('Telemetría reciente'),
       if (o == null || g == null)
-        const EstadoVacio('Aún no hay lecturas para este vehículo.')
+        const EstadoVacio('No hay telemetría reciente para este vehículo.')
       else ...[
         Rejilla(
           minAncho: 220,

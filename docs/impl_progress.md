@@ -1,6 +1,6 @@
 # Avance de la implementación · RutaViva
 
-Actualizado: 2026-11-26 · Hechas: 5 de 21
+Actualizado: 2026-11-26 · Hechas: 10 de 21
 
 Lo escribe la skill `sdd-tecnicas` (tareas nuevas, `[ ]`) y lo marca la skill `sdd-implementar` (`[x]`). Una tarea se marca cuando pasa `flutter analyze` sin errores. La prueba a mano la hace el responsable: si falla, se desmarca y se vuelve a pedir.
 
@@ -37,8 +37,14 @@ Cada integrante implementa y sube (commit) sus propias tareas.
 
 ## TS-03 · Detalle de vehículo · Daniel Cabal
 
-- [ ] **T-09** Telemetría más reciente al abrir el detalle, con cargando, error, *Reintentar* y *Volver* · CA-1, CA-3, CA-4 · depende de: T-06
-- [ ] **T-10** Deslizar para actualizar eventos e historial del vehículo; el vehículo sin telemetría sigue mostrando solo el preventivo por kilometraje · CA-2, CA-5 · depende de: T-09
+- [x] **T-09** Telemetría más reciente al abrir el detalle, con cargando, error, *Reintentar* y *Volver* · CA-1, CA-3, CA-4 · depende de: T-06
+  - Hecha: 2026-11-26
+  - Archivos: `lib/services/fleet_service.dart`, `lib/state/app_store.dart`, `lib/screens/vehicle_detail_screen.dart`, `lib/pages/vehicle_detail_page.dart`, `test/app_store_test.dart`
+  - Notas: el detalle muestra *Cargando* la primera vez y, con error, `EstadoError` con *Reintentar* y *Volver al panel*. Para que deslizar funcione en Chrome con el mouse, el `RefreshIndicator` va con un `ScrollConfiguration` que acepta todos los dispositivos. Falta la prueba a mano contra Supabase.
+- [x] **T-10** Deslizar para actualizar eventos e historial del vehículo; el vehículo sin telemetría sigue mostrando solo el preventivo por kilometraje · CA-2, CA-5 · depende de: T-09
+  - Hecha: 2026-11-26
+  - Archivos: `lib/services/fleet_service.dart`, `lib/services/maintenance_service.dart`, `lib/state/app_store.dart`, `lib/screens/vehicle_detail_screen.dart`
+  - Notas: el mismo `_refrescar()` de T-09 trae eventos e historial; a un vehículo sin sensores no se le pide telemetría. Falta la prueba a mano con CAL-311.
 
 ## TS-04 · Alertas predictivas de mantenimiento · Juan Felipe Martínez
 
@@ -54,9 +60,18 @@ Cada integrante implementa y sube (commit) sus propias tareas.
 
 ## TS-06 · Órdenes de entrega · Daniel Cabal
 
-- [ ] **T-17** Registrar una orden en Supabase · CA-6 · depende de: T-06
-- [ ] **T-18** Marcar entregada y eliminar una orden en Supabase · CA-7, CA-8 · depende de: T-17
-- [ ] **T-19** Recargar el listado deslizando, con error y *Reintentar*; filtros y aviso sin resultados sobre lo cargado · CA-1, CA-2, CA-3, CA-4, CA-5 · depende de: T-06
+- [x] **T-17** Registrar una orden en Supabase · CA-6 · depende de: T-06
+  - Hecha: 2026-11-26
+  - Archivos: `lib/models/models.dart`, `lib/services/order_service.dart`, `lib/state/app_store.dart`, `lib/components/formulario_orden.dart`, `lib/screens/orders_screen.dart`, `test/app_store_test.dart`
+  - Notas: el código `RV-<n>` se calcula leyendo los códigos existentes (si dos personas crean a la vez, la restricción `unique` rechaza la segunda y el formulario queda abierto). Falta la prueba a mano.
+- [x] **T-18** Marcar entregada y eliminar una orden en Supabase · CA-7, CA-8 · depende de: T-17
+  - Hecha: 2026-11-26
+  - Archivos: `lib/services/order_service.dart`, `lib/state/app_store.dart`, `lib/screens/orders_screen.dart`
+  - Notas: los métodos viejos del store que creaban o cambiaban órdenes en memoria se reemplazaron por `agregarOrden(guardada)`, `reemplazarOrden` y `quitarOrden`. Falta la prueba a mano.
+- [x] **T-19** Recargar el listado deslizando, con error y *Reintentar*; filtros y aviso sin resultados sobre lo cargado · CA-1, CA-2, CA-3, CA-4, CA-5 · depende de: T-06
+  - Hecha: 2026-11-26
+  - Archivos: `lib/state/app_store.dart`, `lib/screens/orders_screen.dart`, `lib/pages/orders_page.dart`
+  - Notas: la Page usa `AlwaysScrollableScrollPhysics` para poder deslizar aunque el filtro deje la lista vacía. Falta la prueba a mano sin wifi.
 
 ## TS-07 · Evidencia de mantenimiento · Mauricio Marín
 

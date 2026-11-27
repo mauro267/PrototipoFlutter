@@ -283,44 +283,55 @@ class AppStore extends ChangeNotifier {
 
   // ---------------------------------------------------------------- órdenes (RF-08, RF-10)
 
-  void agregarOrden(OrdenBorrador b) {
-    final id = _siguiente(ordenes.map((o) => o.id));
-    ordenes.add(OrdenEntrega(
-      id: id,
-      codigo: 'RV-${88291 + id - 1}',
-      idCliente: b.idCliente,
-      direccionDestino: b.direccion,
-      ciudad: b.ciudad,
-      fechaCreacion: DateTime.now(),
-      fechaPromesa: b.fechaPromesa,
-      estado: 'pendiente',
-    ));
+  // Las órdenes llegan ya guardadas por OrderService: el store solo refleja lo
+  // que Supabase confirmó.
+
+  void agregarOrden(OrdenEntrega guardada) {
+    ordenes.add(guardada);
     notifyListeners();
   }
 
-  /// Marca una orden como entregada ahora; queda a tiempo o retrasada según la promesa.
-  void marcarEntregada(int idOrden) {
-    final i = ordenes.indexWhere((o) => o.id == idOrden);
+  void reemplazarOrden(OrdenEntrega guardada) {
+    final i = ordenes.indexWhere((o) => o.id == guardada.id);
     if (i < 0) return;
-    final o = ordenes[i];
-    final ahora = DateTime.now();
-    ordenes[i] = OrdenEntrega(
-      id: o.id,
-      codigo: o.codigo,
-      idCliente: o.idCliente,
-      idViaje: o.idViaje,
-      direccionDestino: o.direccionDestino,
-      ciudad: o.ciudad,
-      fechaCreacion: o.fechaCreacion,
-      fechaPromesa: o.fechaPromesa,
-      fechaEntregaReal: ahora,
-      estado: ahora.isAfter(o.fechaPromesa) ? 'retrasada' : 'a_tiempo',
-    );
+    ordenes[i] = guardada;
     notifyListeners();
   }
 
-  void eliminarOrden(int id) {
+  void quitarOrden(int id) {
     ordenes.removeWhere((o) => o.id == id);
+    notifyListeners();
+  }
+
+  /// T-19: el listado recargado desde Supabase reemplaza al que había.
+  void reemplazarOrdenes(List<OrdenEntrega> nuevas) {
+    ordenes
+      ..clear()
+      ..addAll(nuevas);
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------- detalle de vehículo (TS-03)
+
+  /// T-09: deja como lectura actual del vehículo la última que llegó de Supabase.
+  void reemplazarTelemetria(int idVehiculo, TelemetriaGps? nuevoGps, TelemetriaObd? nuevoObd) {
+    gps.removeWhere((t) => t.idVehiculo == idVehiculo);
+    obd.removeWhere((t) => t.idVehiculo == idVehiculo);
+    // Las listas van de la lectura más reciente a la más antigua: la nueva va adelante.
+    if (nuevoGps != null) gps.insert(0, nuevoGps);
+    if (nuevoObd != null) obd.insert(0, nuevoObd);
+    notifyListeners();
+  }
+
+  /// T-10: reemplaza los eventos y el historial de un vehículo por los recargados.
+  void reemplazarDelVehiculo(
+      int idVehiculo, List<EventoConduccion> nuevosEventos, List<Mantenimiento> nuevosMantenimientos) {
+    eventos
+      ..removeWhere((e) => e.idVehiculo == idVehiculo)
+      ..addAll(nuevosEventos);
+    mantenimientos
+      ..removeWhere((m) => m.idVehiculo == idVehiculo)
+      ..addAll(nuevosMantenimientos);
     notifyListeners();
   }
 

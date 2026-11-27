@@ -401,6 +401,19 @@ class OrdenEntrega {
         fechaEntregaReal: _fechaOpt(m['fecha_entrega_real']),
         estado: m['estado'] as String,
       );
+
+  /// Fila nueva: sin id_orden, que lo pone la base de datos.
+  Map<String, dynamic> toMap() => {
+        'codigo': codigo,
+        'id_cliente': idCliente,
+        'id_viaje': idViaje,
+        'direccion_destino': direccionDestino,
+        'ciudad': ciudad,
+        'fecha_creacion': fechaCreacion.toUtc().toIso8601String(),
+        'fecha_promesa': fechaPromesa.toUtc().toIso8601String(),
+        'fecha_entrega_real': fechaEntregaReal?.toUtc().toIso8601String(),
+        'estado': estado,
+      };
 }
 
 /// Foto de evidencia de un mantenimiento (RF-13), guardada en el bucket evidencias.

@@ -51,4 +51,38 @@ class FleetService {
     final filas = await _client.from('telemetria_obd').select().order('fecha_hora', ascending: false);
     return filas.map(TelemetriaObd.fromMap).toList();
   }
+
+  /// TS-03: la última lectura GPS del vehículo, o null si nunca reportó.
+  Future<TelemetriaGps?> getUltimoGps(int idVehiculo) async {
+    final fila = await _client
+        .from('telemetria_gps')
+        .select()
+        .eq('id_vehiculo', idVehiculo)
+        .order('fecha_hora', ascending: false)
+        .limit(1)
+        .maybeSingle();
+    return fila == null ? null : TelemetriaGps.fromMap(fila);
+  }
+
+  /// TS-03: la última lectura OBD-II del vehículo, o null si nunca reportó.
+  Future<TelemetriaObd?> getUltimoObd(int idVehiculo) async {
+    final fila = await _client
+        .from('telemetria_obd')
+        .select()
+        .eq('id_vehiculo', idVehiculo)
+        .order('fecha_hora', ascending: false)
+        .limit(1)
+        .maybeSingle();
+    return fila == null ? null : TelemetriaObd.fromMap(fila);
+  }
+
+  /// TS-03: los eventos de conducción de un vehículo, del más reciente al más antiguo.
+  Future<List<EventoConduccion>> getEventosDe(int idVehiculo) async {
+    final filas = await _client
+        .from('evento_conduccion')
+        .select()
+        .eq('id_vehiculo', idVehiculo)
+        .order('fecha_hora', ascending: false);
+    return filas.map(EventoConduccion.fromMap).toList();
+  }
 }

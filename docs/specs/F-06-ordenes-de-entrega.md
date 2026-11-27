@@ -3,7 +3,7 @@ id: F-06
 titulo: Órdenes de entrega
 version: 1.0.0
 fecha: 2026-11-26
-estado: aprobada
+estado: implementada
 autores: [Mauricio Marín, Elías Saldarriaga, Juan Felipe Martínez, Daniel Cabal]
 requisitos: [RF-08, RF-10]
 depende_de: []
