@@ -104,10 +104,12 @@ class AppStore extends ChangeNotifier {
     return r;
   }
 
-  /// RF-01: alertas vigentes de vehículos con telemetría (AD-04), de mayor a menor probabilidad.
+  /// RF-01: alertas vigentes (pendientes o programadas) de vehículos con telemetría (AD-04),
+  /// de mayor a menor probabilidad. Las confirmadas y las descartadas no se muestran.
   List<PrediccionFalla> get alertas {
     final r = predicciones
-        .where((p) => p.estado != 'confirmada' && vehiculo(p.idVehiculo).hasTelemetry)
+        .where((p) =>
+            (p.estado == 'pendiente' || p.estado == 'programada') && vehiculo(p.idVehiculo).hasTelemetry)
         .toList();
     r.sort((a, b) => b.probabilidad.compareTo(a.probabilidad));
     return r;
@@ -253,6 +255,22 @@ class AppStore extends ChangeNotifier {
   }
 
   void eliminarMantenimiento(int id) => quitarMantenimiento(id);
+
+  /// TS-04: refleja una predicción que Supabase ya guardó.
+  void reemplazarPrediccion(PrediccionFalla p) {
+    final i = predicciones.indexWhere((x) => x.id == p.id);
+    if (i < 0) return;
+    predicciones[i] = p;
+    notifyListeners();
+  }
+
+  /// TS-04 T-13: reemplaza todas las predicciones por las que acaban de llegar de Supabase.
+  void reemplazarPredicciones(List<PrediccionFalla> nuevas) {
+    predicciones
+      ..clear()
+      ..addAll(nuevas);
+    notifyListeners();
+  }
 
   void programarAlerta(int idPrediccion, DateTime fecha) {
     for (final p in predicciones) {

@@ -62,4 +62,39 @@ class MaintenanceService {
       'estado': 'pendiente',
     }).eq('id_prediccion', id);
   }
+
+  // ---------------------------------------------------------------- alertas (TS-04)
+
+  String _fecha(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  Future<PrediccionFalla> _actualizarPrediccion(int id, Map<String, dynamic> cambios) async {
+    final fila = await _client
+        .from('prediccion_falla')
+        .update(cambios)
+        .eq('id_prediccion', id)
+        .select()
+        .single();
+    return PrediccionFalla.fromMap(fila);
+  }
+
+  /// T-11: deja la alerta programada para [fecha] y anota quién la revisó.
+  Future<PrediccionFalla> programarPrediccion(int id, DateTime fecha, int idUsuario) =>
+      _actualizarPrediccion(id, {
+        'estado': 'programada',
+        'fecha_programada': _fecha(fecha),
+        'id_usuario_revision': idUsuario,
+      });
+
+  /// T-11: la alerta vuelve a quedar pendiente, sin fecha programada.
+  Future<PrediccionFalla> cancelarProgramacion(int id) =>
+      _actualizarPrediccion(id, {'estado': 'pendiente', 'fecha_programada': null});
+
+  /// T-12: la alerta se marca como atendida sin programar una intervención.
+  Future<PrediccionFalla> descartarPrediccion(int id, int idUsuario) =>
+      _actualizarPrediccion(id, {
+        'estado': 'descartada',
+        'fecha_programada': null,
+        'id_usuario_revision': idUsuario,
+      });
 }

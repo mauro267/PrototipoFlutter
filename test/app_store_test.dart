@@ -161,4 +161,20 @@ void main() {
     final viajesPorZona = s.zonas.map((z) => s.viajesDe(z.id)).reduce((a, b) => a + b);
     expect(viajesPorZona, s.viajes.length);
   });
+
+  test('TS-04: una alerta descartada deja de aparecer entre las alertas', () {
+    final s = nuevo();
+    final p = s.alertas.first;
+    s.reemplazarPrediccion(PrediccionFalla(
+      id: p.id,
+      idVehiculo: p.idVehiculo,
+      fechaPrediccion: p.fechaPrediccion,
+      componente: p.componente,
+      probabilidad: p.probabilidad,
+      fechaLimiteMantenimiento: p.fechaLimiteMantenimiento,
+      estado: 'descartada',
+    ));
+    expect(s.alertas.any((a) => a.id == p.id), isFalse);
+    expect(s.predicciones.any((a) => a.id == p.id && a.estado == 'descartada'), isTrue);
+  });
 }

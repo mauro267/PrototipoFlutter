@@ -134,12 +134,39 @@ class AccionesMantenimiento {
       helpText: 'Fecha de la intervención',
     );
     if (fecha == null || !context.mounted) return;
-    store.programarAlerta(p.id, fecha);
-    _aviso(context, 'Mantenimiento programado para el ${fmtFecha(fecha)}.');
+    try {
+      final guardada = await _maintenanceService.programarPrediccion(p.id, fecha, store.usuario.id);
+      store.reemplazarPrediccion(guardada);
+      if (context.mounted) _aviso(context, 'Mantenimiento programado para el ${fmtFecha(fecha)}.');
+    } catch (e) {
+      if (context.mounted) _aviso(context, mensajeDeError(e));
+    }
   }
 
-  void cancelarProgramacion(BuildContext context, PrediccionFalla p) {
-    store.cancelarProgramacion(p.id);
-    _aviso(context, 'Programación cancelada.');
+  Future<void> cancelarProgramacion(BuildContext context, PrediccionFalla p) async {
+    try {
+      final guardada = await _maintenanceService.cancelarProgramacion(p.id);
+      store.reemplazarPrediccion(guardada);
+      if (context.mounted) _aviso(context, 'Programación cancelada.');
+    } catch (e) {
+      if (context.mounted) _aviso(context, mensajeDeError(e));
+    }
+  }
+
+  /// T-12 (F-04 A1): marca la alerta como atendida sin programar una intervención.
+  Future<void> descartar(BuildContext context, PrediccionFalla p) async {
+    final ok = await confirmar(
+      context,
+      titulo: 'Marcar alerta como atendida',
+      mensaje: 'La alerta de "${p.componente}" dejará de aparecer entre las pendientes.',
+    );
+    if (!ok || !context.mounted) return;
+    try {
+      final guardada = await _maintenanceService.descartarPrediccion(p.id, store.usuario.id);
+      store.reemplazarPrediccion(guardada);
+      if (context.mounted) _aviso(context, 'Alerta marcada como atendida.');
+    } catch (e) {
+      if (context.mounted) _aviso(context, mensajeDeError(e));
+    }
   }
 }
