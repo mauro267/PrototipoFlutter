@@ -1,11 +1,11 @@
 ---
 id: TS-04
 titulo: Alertas predictivas de mantenimiento
-version: 1.0.0
-fecha: 2026-11-26
+version: 1.1.0
+fecha: 2026-11-27
 estado: aprobada
 funcional: F-04 1.0.0
-responsable: Juan Felipe Martínez
+responsable: Mauricio Marín
 ---
 
 # TS-04 · Alertas predictivas de mantenimiento
@@ -53,8 +53,9 @@ acción actualiza la fila de `prediccion_falla` y, cuando Supabase confirma, el
 
 ## Preguntas abiertas
 
-- Ninguna.
+- Ninguna. T-13 muestra el error de la recarga con un `SnackBar` que trae *Reintentar*, en vez de `EstadoError`, porque la lista de alertas ya cargada sigue siendo válida y no se debe tapar.
 
 ## Historial
 
+- 1.1.0 · 2026-11-27 · T-13: el error de recarga va en un `SnackBar` con *Reintentar*. No se agregó `PrediccionFalla.copyWith`: el servicio devuelve la fila actualizada y el store la reemplaza.
 - 1.0.0 · 2026-11-26 · Primera versión, con la skill `sdd-tecnicas`; aprobada.

@@ -22,6 +22,8 @@ class MaintenancePage extends StatelessWidget {
   final ValueChanged<Mantenimiento> onEditar;
   final ValueChanged<Mantenimiento> onEliminar;
   final Function(Mantenimiento)? onEvidencia;
+  final Function(PrediccionFalla)? onDescartar;
+  final Function()? onRecargarAlertas;
 
   const MaintenancePage({
     super.key,
@@ -37,11 +39,14 @@ class MaintenancePage extends StatelessWidget {
     required this.onEditar,
     required this.onEliminar,
     this.onEvidencia,
+    this.onDescartar,
+    this.onRecargarAlertas,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(20),
       children: [
         EncabezadoPagina(
@@ -49,7 +54,16 @@ class MaintenancePage extends StatelessWidget {
           subtitulo: 'Alertas de falla prevista, preventivo por kilometraje e historial.',
           accion: AppButton('Registrar', icono: Icons.add, onPressed: onRegistrar),
         ),
-        const TituloSeccion('Alertas predictivas de falla'),
+        TituloSeccion(
+          'Alertas predictivas de falla',
+          accion: onRecargarAlertas == null
+              ? null
+              : IconButton(
+                  tooltip: 'Recargar alertas',
+                  icon: const Icon(Icons.refresh),
+                  onPressed: onRecargarAlertas,
+                ),
+        ),
         if (alertas.isEmpty)
           const EstadoVacio('No hay alertas predictivas activas.')
         else
@@ -63,6 +77,7 @@ class MaintenancePage extends StatelessWidget {
                   onVerVehiculo: () => onVerVehiculo(a.idVehiculo),
                   onProgramar: () => onProgramar(a),
                   onCancelar: () => onCancelarProgramacion(a),
+                  onDescartar: onDescartar == null ? null : () => onDescartar!(a),
                 ),
             ],
           ),

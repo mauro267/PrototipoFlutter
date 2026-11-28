@@ -28,6 +28,7 @@ class VehicleDetailPage extends StatelessWidget {
   final ValueChanged<Mantenimiento> onEditar;
   final ValueChanged<Mantenimiento> onEliminar;
   final Function(Mantenimiento)? onEvidencia;
+  final Function(PrediccionFalla)? onDescartar;
 
   const VehicleDetailPage({
     super.key,
@@ -45,6 +46,7 @@ class VehicleDetailPage extends StatelessWidget {
     required this.onEditar,
     required this.onEliminar,
     this.onEvidencia,
+    this.onDescartar,
   });
 
   @override
@@ -195,6 +197,7 @@ class VehicleDetailPage extends StatelessWidget {
                 prediccion: a,
                 onProgramar: () => onProgramar(a),
                 onCancelar: () => onCancelarProgramacion(a),
+                onDescartar: onDescartar == null ? null : () => onDescartar!(a),
               ),
           ],
         ),

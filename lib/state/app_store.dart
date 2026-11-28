@@ -104,10 +104,12 @@ class AppStore extends ChangeNotifier {
     return r;
   }
 
-  /// RF-01: alertas vigentes de vehículos con telemetría (AD-04), de mayor a menor probabilidad.
+  /// RF-01: alertas vigentes (pendientes o programadas) de vehículos con telemetría (AD-04),
+  /// de mayor a menor probabilidad. Las confirmadas y las descartadas no se muestran.
   List<PrediccionFalla> get alertas {
     final r = predicciones
-        .where((p) => p.estado != 'confirmada' && vehiculo(p.idVehiculo).hasTelemetry)
+        .where((p) =>
+            (p.estado == 'pendiente' || p.estado == 'programada') && vehiculo(p.idVehiculo).hasTelemetry)
         .toList();
     r.sort((a, b) => b.probabilidad.compareTo(a.probabilidad));
     return r;
@@ -193,32 +195,39 @@ class AppStore extends ChangeNotifier {
 
   // ---------------------------------------------------------------- mantenimiento (RF-02, RF-03)
 
-  int _siguiente(Iterable<int> ids) => ids.isEmpty ? 1 : ids.reduce(math.max) + 1;
-
-  void agregarMantenimiento(MantenimientoBorrador b) {
-    mantenimientos.add(Mantenimiento(
-      id: _siguiente(mantenimientos.map((m) => m.id)),
-      idVehiculo: b.idVehiculo,
-      idPrediccion: b.idPrediccion,
-      fecha: DateTime.now(),
-      origen: b.origen,
-      tipoFalla: b.tipoFalla,
-      descripcion: b.descripcion,
-      kilometraje: b.kilometraje,
-      costo: b.costo,
-      horasFueraServicio: b.horasFuera,
-      enRuta: b.origen == 'correctivo' && b.enRuta,
-      idUsuarioRegistro: usuario.id,
-    ));
-    final v = vehiculo(b.idVehiculo);
-    v.kilometrajeActual = math.max(v.kilometrajeActual, b.kilometraje);
-    if (b.origen == 'preventivo') v.kmUltimoPreventivo = b.kilometraje;
-    if (b.idPrediccion != null) {
+  void agregarMantenimiento(Mantenimiento guardado) {
+    mantenimientos.insert(0, guardado);
+    final v = vehiculo(guardado.idVehiculo);
+    v.kilometrajeActual = math.max(v.kilometrajeActual, guardado.kilometraje);
+    if (guardado.origen == 'preventivo') v.kmUltimoPreventivo = guardado.kilometraje;
+    if (guardado.idPrediccion != null) {
       for (final p in predicciones) {
-        if (p.id == b.idPrediccion) {
+        if (p.id == guardado.idPrediccion) {
           p.estado = 'confirmada';
-          p.idUsuarioRevision = usuario.id;
+          p.idUsuarioRevision = guardado.idUsuarioRegistro ?? usuario.id;
         }
+      }
+    }
+    notifyListeners();
+  }
+
+  void reemplazarMantenimiento(Mantenimiento m) {
+    final i = mantenimientos.indexWhere((item) => item.id == m.id);
+    if (i >= 0) {
+      mantenimientos[i] = m;
+      notifyListeners();
+    }
+  }
+
+  void quitarMantenimiento(int id) {
+    final i = mantenimientos.indexWhere((m) => m.id == id);
+    if (i < 0) return;
+    final idPred = mantenimientos[i].idPrediccion;
+    mantenimientos.removeAt(i);
+    // Si el mantenimiento había confirmado una predicción, vuelve a estar pendiente.
+    if (idPred != null && !mantenimientos.any((m) => m.idPrediccion == idPred)) {
+      for (final p in predicciones) {
+        if (p.id == idPred && p.estado == 'confirmada') p.estado = 'pendiente';
       }
     }
     notifyListeners();
@@ -228,7 +237,7 @@ class AppStore extends ChangeNotifier {
     final i = mantenimientos.indexWhere((m) => m.id == id);
     if (i < 0) return;
     final m = mantenimientos[i];
-    mantenimientos[i] = Mantenimiento(
+    reemplazarMantenimiento(Mantenimiento(
       id: m.id,
       idVehiculo: b.idVehiculo,
       idPrediccion: m.idPrediccion,
@@ -242,21 +251,24 @@ class AppStore extends ChangeNotifier {
       horasFueraServicio: b.horasFuera,
       enRuta: b.origen == 'correctivo' && b.enRuta,
       idUsuarioRegistro: m.idUsuarioRegistro,
-    );
+    ));
+  }
+
+  void eliminarMantenimiento(int id) => quitarMantenimiento(id);
+
+  /// TS-04: refleja una predicción que Supabase ya guardó.
+  void reemplazarPrediccion(PrediccionFalla p) {
+    final i = predicciones.indexWhere((x) => x.id == p.id);
+    if (i < 0) return;
+    predicciones[i] = p;
     notifyListeners();
   }
 
-  void eliminarMantenimiento(int id) {
-    final i = mantenimientos.indexWhere((m) => m.id == id);
-    if (i < 0) return;
-    final idPred = mantenimientos[i].idPrediccion;
-    mantenimientos.removeAt(i);
-    // Si el mantenimiento había confirmado una predicción, vuelve a estar pendiente.
-    if (idPred != null && !mantenimientos.any((m) => m.idPrediccion == idPred)) {
-      for (final p in predicciones) {
-        if (p.id == idPred && p.estado == 'confirmada') p.estado = 'pendiente';
-      }
-    }
+  /// TS-04 T-13: reemplaza todas las predicciones por las que acaban de llegar de Supabase.
+  void reemplazarPredicciones(List<PrediccionFalla> nuevas) {
+    predicciones
+      ..clear()
+      ..addAll(nuevas);
     notifyListeners();
   }
 

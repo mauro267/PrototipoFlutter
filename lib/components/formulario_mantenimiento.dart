@@ -12,7 +12,7 @@ Future<void> mostrarFormularioMantenimiento(
   required List<PrediccionFalla> alertas,
   int? idVehiculoInicial,
   Mantenimiento? inicial,
-  required ValueChanged<MantenimientoBorrador> onGuardar,
+  required Future<bool> Function(MantenimientoBorrador) onGuardar,
 }) {
   return showDialog<void>(
     context: context,
@@ -31,7 +31,7 @@ class _FormularioMantenimiento extends StatefulWidget {
   final List<PrediccionFalla> alertas;
   final int? idVehiculoInicial;
   final Mantenimiento? inicial;
-  final ValueChanged<MantenimientoBorrador> onGuardar;
+  final Future<bool> Function(MantenimientoBorrador) onGuardar;
   const _FormularioMantenimiento({
     required this.vehiculos,
     required this.alertas,
@@ -57,6 +57,7 @@ class _FormularioMantenimientoState extends State<_FormularioMantenimiento> {
   late final TextEditingController _km;
   late final TextEditingController _costo;
   late final TextEditingController _horas;
+  bool _guardando = false;
 
   bool get _edita => widget.inicial != null;
 
@@ -95,20 +96,35 @@ class _FormularioMantenimientoState extends State<_FormularioMantenimiento> {
     return null;
   }
 
-  void _guardar() {
-    if (!_form.currentState!.validate()) return;
-    widget.onGuardar(MantenimientoBorrador(
+  Future<void> _guardar() async {
+    if (!_form.currentState!.validate() || _guardando) return;
+    setState(() => _guardando = true);
+    final tipoFallaTxt = _tipoFalla.text.trim();
+    final tipoFallaValor = tipoFallaTxt.isEmpty
+        ? (_origen == 'preventivo' ? 'Mantenimiento preventivo' : '')
+        : tipoFallaTxt;
+
+    final borrador = MantenimientoBorrador(
       idVehiculo: _idVehiculo,
       idPrediccion: _edita ? widget.inicial!.idPrediccion : _idPrediccion,
       origen: _origen,
-      tipoFalla: _tipoFalla.text.trim(),
+      tipoFalla: tipoFallaValor,
       descripcion: _descripcion.text.trim(),
       kilometraje: _num(_km.text)!,
       costo: _num(_costo.text)!,
       horasFuera: _num(_horas.text)!,
       enRuta: _enRuta,
-    ));
-    Navigator.of(context).pop();
+    );
+    try {
+      final ok = await widget.onGuardar(borrador);
+      if (ok && mounted) {
+        Navigator.of(context).pop();
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _guardando = false);
+      }
+    }
   }
 
   @override
@@ -172,9 +188,14 @@ class _FormularioMantenimientoState extends State<_FormularioMantenimiento> {
                 ],
                 const SizedBox(height: 12),
                 AppTextField(
-                  etiqueta: 'Tipo de falla',
+                  etiqueta: _origen == 'correctivo' ? 'Tipo de falla' : 'Tipo de intervención (opcional)',
                   controller: _tipoFalla,
-                  validator: (s) => (s == null || s.trim().isEmpty) ? 'Obligatorio' : null,
+                  validator: (s) {
+                    if (_origen == 'correctivo' && (s == null || s.trim().isEmpty)) {
+                      return 'Obligatorio';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 12),
                 AppTextField(etiqueta: 'Descripción (opcional)', controller: _descripcion, maxLineas: 2),
@@ -203,8 +224,13 @@ class _FormularioMantenimientoState extends State<_FormularioMantenimiento> {
         ),
       ),
       actions: [
-        AppButton('Cancelar', tipo: TipoBoton.texto, onPressed: () => Navigator.of(context).pop()),
-        AppButton(_edita ? 'Guardar cambios' : 'Guardar', onPressed: _guardar),
+        AppButton('Cancelar', tipo: TipoBoton.texto, onPressed: _guardando ? null : () => Navigator.of(context).pop()),
+        AppButton(
+          _guardando
+              ? 'Guardando...'
+              : (_edita ? 'Guardar cambios' : 'Guardar'),
+          onPressed: _guardando ? null : _guardar,
+        ),
       ],
     );
   }

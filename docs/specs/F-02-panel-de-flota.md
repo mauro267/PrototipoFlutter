@@ -3,7 +3,7 @@ id: F-02
 titulo: Panel de flota
 version: 1.0.0
 fecha: 2026-11-26
-estado: aprobada
+estado: implementada
 autores: [Mauricio Marín, Elías Saldarriaga, Juan Felipe Martínez, Daniel Cabal]
 requisitos: [RF-04, RF-06, RF-07, RF-09, RF-12]
 depende_de: [F-01]
@@ -68,6 +68,7 @@ El coordinador necesita ver, de un vistazo, cómo está operando toda la flota p
 
 ## Historial
 
+- 1.0.0 · 2026-11-27 · Implementada.
 - 1.0.0 · 2026-11-26 · Aprobada para la Entrega 3; se agrega el flujo A2 (cambiar la meta) con su CA-6 y se cierra la pregunta abierta.
 - 0.1.0 · 2026-11-06 · Primera versión.
 - 0.2.0 · 2026-11-06 · Se agregó CA-5 para cubrir el flujo alterno A1 (filtrar por zona) en su caso con resultados.

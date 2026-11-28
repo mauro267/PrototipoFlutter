@@ -3,7 +3,7 @@ id: F-05
 titulo: Registrar mantenimiento
 version: 1.0.0
 fecha: 2026-11-26
-estado: aprobada
+estado: implementada
 autores: [Mauricio Marín, Elías Saldarriaga, Juan Felipe Martínez, Daniel Cabal]
 requisitos: [RF-03, RF-11]
 depende_de: []

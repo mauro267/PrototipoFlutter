@@ -85,4 +85,13 @@ class FleetService {
         .order('fecha_hora', ascending: false);
     return filas.map(EventoConduccion.fromMap).toList();
   }
+
+  /// Actualiza el kilometraje actual de un vehículo (y opcionalmente el km del último preventivo).
+  Future<void> actualizarKilometraje(int idVehiculo, double km, {double? kmUltimoPreventivo}) async {
+    final valores = <String, dynamic>{'kilometraje_actual': km};
+    if (kmUltimoPreventivo != null) {
+      valores['km_ultimo_preventivo'] = kmUltimoPreventivo;
+    }
+    await _client.from('vehiculo').update(valores).eq('id_vehiculo', idVehiculo);
+  }
 }

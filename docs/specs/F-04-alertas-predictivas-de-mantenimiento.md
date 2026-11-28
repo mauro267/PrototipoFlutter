@@ -3,7 +3,7 @@ id: F-04
 titulo: Alertas predictivas de mantenimiento
 version: 1.0.0
 fecha: 2026-11-26
-estado: aprobada
+estado: implementada
 autores: [Mauricio Marín, Elías Saldarriaga, Juan Felipe Martínez, Daniel Cabal]
 requisitos: [RF-01, RF-02]
 depende_de: []
@@ -64,6 +64,7 @@ El coordinador necesita anticipar fallas de los vehículos con telemetría, para
 
 ## Historial
 
+- 1.0.0 · 2026-11-27 · Implementada.
 - 1.0.0 · 2026-11-26 · Aprobada para la Entrega 3. Se agrega cancelar la programación (A2, CA-6), que el prototipo ya hacía; se cierra la pregunta abierta.
 - 0.1.0 · 2026-11-06 · Primera versión.
 - 0.2.0 · 2026-11-06 · Se precisó el fuera de alcance (ya no contradice marcar una alerta como atendida) y se agregó CA-5 para el flujo alterno A1 (descartar una alerta).

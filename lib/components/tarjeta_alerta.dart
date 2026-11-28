@@ -7,7 +7,8 @@ import '../utils/format.dart';
 import 'app_button.dart';
 import 'basicos.dart';
 
-/// Alerta predictiva de falla (RF-01) con acción para programar (RF-02).
+/// Alerta predictiva de falla (RF-01) con acción para programar (RF-02) y,
+/// si se pasa [onDescartar], para marcarla como atendida (F-04 A1).
 /// Si [etiquetaVehiculo] es null no se muestra el encabezado del vehículo
 /// (por ejemplo, cuando ya se está en el detalle de ese vehículo).
 class TarjetaAlerta extends StatelessWidget {
@@ -16,6 +17,7 @@ class TarjetaAlerta extends StatelessWidget {
   final VoidCallback? onVerVehiculo;
   final VoidCallback onProgramar;
   final VoidCallback onCancelar;
+  final Function()? onDescartar;
   const TarjetaAlerta({
     super.key,
     required this.prediccion,
@@ -23,6 +25,7 @@ class TarjetaAlerta extends StatelessWidget {
     this.onVerVehiculo,
     required this.onProgramar,
     required this.onCancelar,
+    this.onDescartar,
   });
 
   @override
@@ -82,7 +85,16 @@ class TarjetaAlerta extends StatelessWidget {
               ],
             )
           else
-            AppButton('Programar mantenimiento', icono: Icons.calendar_month, onPressed: onProgramar),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                AppButton('Programar mantenimiento', icono: Icons.calendar_month, onPressed: onProgramar),
+                if (onDescartar != null)
+                  AppButton('Marcar atendida',
+                      icono: Icons.task_alt, tipo: TipoBoton.texto, onPressed: onDescartar),
+              ],
+            ),
         ],
       ),
     );

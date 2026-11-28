@@ -106,6 +106,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                     onRegistrarMantenimiento: () => acciones.registrar(context, idVehiculo: v.id),
                     onProgramar: (p) => acciones.programar(context, p),
                     onCancelarProgramacion: (p) => acciones.cancelarProgramacion(context, p),
+                    onDescartar: (p) => acciones.descartar(context, p),
                     onEditar: (m) => acciones.editar(context, m),
                     onEliminar: (m) => acciones.eliminar(context, m),
                     onEvidencia: (m) => Navigator.pushNamed(context, '/evidencias', arguments: m),
