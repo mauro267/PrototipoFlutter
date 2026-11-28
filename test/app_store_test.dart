@@ -5,6 +5,28 @@ import 'package:rutaviva/state/app_store.dart';
 
 AppStore nuevo() => AppStore(DatosSimulados.cargar(), DatosSimulados.usuarios().first);
 
+Mantenimiento mantenimientoPrueba({
+  int id = 999,
+  int idVehiculo = 1,
+  String origen = 'correctivo',
+  bool enRuta = true,
+  int? idPrediccion,
+}) =>
+    Mantenimiento(
+      id: id,
+      idVehiculo: idVehiculo,
+      idPrediccion: idPrediccion,
+      fecha: DateTime.now(),
+      origen: origen,
+      tipoFalla: 'Prueba',
+      descripcion: '',
+      kilometraje: 150000,
+      costo: 100000,
+      horasFueraServicio: 3,
+      enRuta: enRuta,
+      idUsuarioRegistro: 1,
+    );
+
 MantenimientoBorrador borrador({int idVehiculo = 1, String origen = 'correctivo', bool enRuta = true, int? idPrediccion}) =>
     MantenimientoBorrador(
       idVehiculo: idVehiculo,
@@ -47,13 +69,14 @@ void main() {
     final antes = s.mantenimientos.length;
     final varadasAntes = s.varadas;
 
-    s.agregarMantenimiento(borrador());
+    final nuevoM = mantenimientoPrueba();
+    s.agregarMantenimiento(nuevoM);
     expect(s.mantenimientos.length, antes + 1);
     expect(s.varadas, varadasAntes + 1);
 
-    final id = s.mantenimientos.last.id;
+    final id = nuevoM.id;
     s.editarMantenimiento(id, borrador(origen: 'preventivo', enRuta: false));
-    expect(s.mantenimientos.last.origen, 'preventivo');
+    expect(s.mantenimientos.firstWhere((m) => m.id == id).origen, 'preventivo');
     expect(s.varadas, varadasAntes);
 
     s.eliminarMantenimiento(id);
@@ -62,7 +85,7 @@ void main() {
 
   test('un mantenimiento puede confirmar una predicción', () {
     final s = nuevo();
-    s.agregarMantenimiento(borrador(idPrediccion: 1, origen: 'preventivo', enRuta: false));
+    s.agregarMantenimiento(mantenimientoPrueba(idPrediccion: 1, origen: 'preventivo', enRuta: false));
     expect(s.alertas.any((p) => p.id == 1), isFalse);
   });
 

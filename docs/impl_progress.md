@@ -1,6 +1,6 @@
 # Avance de la implementación · RutaViva
 
-Actualizado: 2026-11-26 · Hechas: 10 de 21
+Actualizado: 2026-11-27 · Hechas: 13 de 21
 
 Lo escribe la skill `sdd-tecnicas` (tareas nuevas, `[ ]`) y lo marca la skill `sdd-implementar` (`[x]`). Una tarea se marca cuando pasa `flutter analyze` sin errores. La prueba a mano la hace el responsable: si falla, se desmarca y se vuelve a pedir.
 
@@ -54,9 +54,18 @@ Cada integrante implementa y sube (commit) sus propias tareas.
 
 ## TS-05 · Registrar mantenimiento · Elías Saldarriaga
 
-- [ ] **T-14** Registrar un mantenimiento en Supabase (vehículo y predicción incluidos); el formulario conserva los datos si falla · CA-1, CA-3, CA-4, CA-5 · depende de: T-06
-- [ ] **T-15** Corregir y eliminar un mantenimiento en Supabase · CA-6, CA-7 · depende de: T-14
-- [ ] **T-16** Revisar que un correctivo sin tipo de falla no se guarde · CA-2 · depende de: T-14
+- [x] **T-14** Registrar un mantenimiento en Supabase (vehículo y predicción incluidos); el formulario conserva los datos si falla · CA-1, CA-3, CA-4, CA-5 · depende de: T-06
+  - Hecha: 2026-11-27
+  - Archivos: `lib/models/models.dart`, `lib/services/maintenance_service.dart`, `lib/services/fleet_service.dart`, `lib/state/app_store.dart`, `lib/components/formulario_mantenimiento.dart`, `lib/screens/acciones_mantenimiento.dart`
+  - Notas: `Mantenimiento.toMap()` inserta en Supabase con fecha yyyy-MM-dd y la base de datos asigna el id generado; `actualizarKilometraje` actualiza el kilometraje y último preventivo si aplica; si se seleccionó una alerta se marca `confirmada` con el usuario; el diálogo deshabilita el botón mientras guarda y si la llamada falla mantiene los datos capturados y muestra el error. `flutter analyze` y `flutter test` pasan limpios.
+- [x] **T-15** Corregir y eliminar un mantenimiento en Supabase · CA-6, CA-7 · depende de: T-14
+  - Hecha: 2026-11-27
+  - Archivos: `lib/services/maintenance_service.dart`, `lib/state/app_store.dart`, `lib/screens/acciones_mantenimiento.dart`
+  - Notas: `actualizarMantenimiento` aplica cambios en Supabase y actualiza la lista en memoria con `reemplazarMantenimiento`; `eliminarMantenimiento` borra el registro en Supabase, reabre la predicción asociada con `reabrirPrediccion` (volviéndola a 'pendiente') si ya no tiene otro mantenimiento asociado, y remueve el registro con `quitarMantenimiento`. Pasan `flutter analyze` y `flutter test`.
+- [x] **T-16** Revisar que un correctivo sin tipo de falla no se guarde · CA-2 · depende de: T-14
+  - Hecha: 2026-11-27
+  - Archivos: `lib/components/formulario_mantenimiento.dart`, `test/widget_test.dart`
+  - Notas: en el formulario, cuando el tipo de mantenimiento es `correctivo`, el campo `Tipo de falla` es obligatorio (`validator` retorna «Obligatorio») y bloquea el guardado; para `preventivo` el campo es opcional y asigna por defecto «Mantenimiento preventivo». Verificado mediante prueba de widget automatizada en `test/widget_test.dart` y `flutter analyze` sin errores.
 
 ## TS-06 · Órdenes de entrega · Daniel Cabal
 
