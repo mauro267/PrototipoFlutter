@@ -3,7 +3,7 @@ id: F-01
 titulo: Cuenta y sesión
 version: 1.0.0
 fecha: 2026-11-26
-estado: aprobada
+estado: implementada
 autores: [Mauricio Marín, Elías Saldarriaga, Juan Felipe Martínez, Daniel Cabal]
 requisitos: [RF-14, RNF-04]
 depende_de: []
@@ -68,6 +68,7 @@ El coordinador de operaciones necesita una cuenta propia para entrar a la aplica
 
 ## Historial
 
+- 1.0.0 · 2026-11-27 · Implementada.
 - 1.0.0 · 2026-11-26 · Aprobada para la Entrega 3. Pasa de «Iniciar sesión» a «Cuenta y sesión»: se agregan crear cuenta (A3, A4) y cerrar sesión (A5), con CA-5 a CA-7, por RF-14. Se quita la regla de que las cuentas las crea administración y se cierra la pregunta abierta (recuperar contraseña queda fuera de alcance).
 - 0.2.0 · 2026-11-06 · Se agregó CA-4 para cubrir el flujo alterno A2 (sesión ya iniciada).
 - 0.1.0 · 2026-11-06 · Primera versión.

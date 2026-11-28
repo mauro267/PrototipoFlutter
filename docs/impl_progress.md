@@ -1,6 +1,6 @@
 # Avance de la implementación · RutaViva
 
-Actualizado: 2026-11-27 · Hechas: 13 de 21
+Actualizado: 2026-11-27 · Hechas: 21 de 21
 
 Lo escribe la skill `sdd-tecnicas` (tareas nuevas, `[ ]`) y lo marca la skill `sdd-implementar` (`[x]`). Una tarea se marca cuando pasa `flutter analyze` sin errores. La prueba a mano la hace el responsable: si falla, se desmarca y se vuelve a pedir.
 
@@ -8,7 +8,10 @@ Cada integrante implementa y sube (commit) sus propias tareas.
 
 ## TS-01 · Cuenta y sesión · Mauricio Marín
 
-- [ ] **T-01** Conectar la app a Supabase con llaves fuera del código, rutas nombradas y ruta inicial según la sesión · CA-4 · depende de: ninguna
+- [x] **T-01** Conectar la app a Supabase con llaves fuera del código, rutas nombradas y ruta inicial según la sesión · CA-4 · depende de: ninguna
+  - Hecha: 2026-11-27
+  - Archivos: `pubspec.yaml`, `env.example.json` (nuevo), `lib/config.dart` (nuevo), `lib/main.dart`
+  - Notas: Probada a mano el 2026-11-27 contra Supabase: sin `--dart-define-from-file` muestra «Falta la configuración de Supabase…»; con `env.json` abre el login o el panel según la sesión.
 - [x] **T-02** `AuthService` y `UsuarioService` reales; `LoginScreen` con cargando y errores en español · CA-1, CA-2, CA-3 · depende de: T-01
   - Hecha: 2026-11-26
   - Archivos: `lib/services/auth_service.dart`, `lib/services/usuario_service.dart` (nuevo), `lib/utils/errores.dart` (nuevo), `lib/models/models.dart`, `lib/screens/login_screen.dart`, `lib/pages/login_page.dart`
@@ -17,7 +20,10 @@ Cada integrante implementa y sube (commit) sus propias tareas.
   - Hecha: 2026-11-26
   - Archivos: `lib/screens/registro_screen.dart` (nuevo), `lib/pages/registro_page.dart` (nuevo), `lib/main.dart`, `lib/pages/login_page.dart`
   - Notas: con *Confirm email* encendido el registro crea la cuenta pero no abre sesión y el panel dice «No hay una sesión iniciada»; hay que apagarlo (TS-01, preparación 3). Probado: cuenta nueva → panel con el nombre y fila en `usuario` (coordinador); correo repetido → «Ese correo ya tiene una cuenta.».
-- [ ] **T-04** `HomeScreen` con el usuario de la sesión y cerrar sesión que limpia la pila · CA-5, CA-7 · depende de: T-02
+- [x] **T-04** `HomeScreen` con el usuario de la sesión y cerrar sesión que limpia la pila · CA-5, CA-7 · depende de: T-02
+  - Hecha: 2026-11-27
+  - Archivos: `lib/screens/home_screen.dart`, `test/datos_simulados.dart` (movido desde `lib/services/simulated_data.dart`)
+  - Notas: Prueba a mano hecha por otro integrante del equipo: *Cerrar sesión* vuelve al login y con F5 sigue en el login.
 
 ## TS-02 · Panel de flota · Mauricio Marín
 
@@ -25,7 +31,10 @@ Cada integrante implementa y sube (commit) sus propias tareas.
   - Hecha: 2026-11-26
   - Archivos: `lib/models/models.dart`, `lib/services/fleet_service.dart` (nuevo), `lib/services/maintenance_service.dart` (nuevo), `lib/services/order_service.dart` (nuevo), `lib/services/parametro_service.dart` (nuevo), `lib/services/carga_inicial.dart` (nuevo), `lib/state/datos_iniciales.dart` (nuevo)
   - Notas: nada. `flutter analyze` sin errores y el panel carga los datos de las migraciones.
-- [ ] **T-06** `HomeScreen` crea el `AppStore` con los datos de Supabase, con cargando, error y *Reintentar*; los datos simulados pasan a `test/` · CA-1, CA-4 · depende de: T-04, T-05
+- [x] **T-06** `HomeScreen` crea el `AppStore` con los datos de Supabase, con cargando, error y *Reintentar*; los datos simulados pasan a `test/` · CA-1, CA-4 · depende de: T-04, T-05
+  - Hecha: 2026-11-27
+  - Archivos: `lib/screens/home_screen.dart`, `lib/components/estados_carga.dart` (nuevo), `lib/state/app_store.dart`, `test/datos_simulados.dart`, `test/app_store_test.dart`
+  - Notas: Probada a mano el 2026-11-27 contra Supabase: con una URL inexistente el login muestra el mensaje de conexión. *Reintentar* en la pantalla de error: prueba a mano hecha por otro integrante del equipo.
 - [x] **T-07** Indicadores recalculados para la zona elegida · CA-5 · depende de: T-06
   - Hecha: 2026-11-26
   - Archivos: `lib/state/app_store.dart`, `lib/screens/fleet_screen.dart`
@@ -46,11 +55,20 @@ Cada integrante implementa y sube (commit) sus propias tareas.
   - Archivos: `lib/services/fleet_service.dart`, `lib/services/maintenance_service.dart`, `lib/state/app_store.dart`, `lib/screens/vehicle_detail_screen.dart`
   - Notas: el mismo `_refrescar()` de T-09 trae eventos e historial; a un vehículo sin sensores no se le pide telemetría. Falta la prueba a mano con CAL-311.
 
-## TS-04 · Alertas predictivas de mantenimiento · Juan Felipe Martínez
+## TS-04 · Alertas predictivas de mantenimiento · Mauricio Marín
 
-- [ ] **T-11** Programar y cancelar una alerta guardan en Supabase · CA-2, CA-6 · depende de: T-06
-- [ ] **T-12** Marcar una alerta como atendida sin programar · CA-5 · depende de: T-11
-- [ ] **T-13** Recargar alertas deslizando, con aviso de vacío y error con *Reintentar* · CA-1, CA-3, CA-4 · depende de: T-11
+- [x] **T-11** Programar y cancelar una alerta guardan en Supabase · CA-2, CA-6 · depende de: T-06
+  - Hecha: 2026-11-27
+  - Archivos: `lib/services/maintenance_service.dart`, `lib/state/app_store.dart`, `lib/screens/acciones_mantenimiento.dart`, `lib/screens/maintenance_screen.dart`
+  - Notas: Probada a mano el 2026-11-27 contra Supabase: programar ABC-123 deja `prediccion_falla` 1 en `programada` con `fecha_programada` e `id_usuario_revision`; cancelar la deja en `pendiente` y `fecha_programada` null. El calendario solo deja elegir entre hoy y la fecha límite de la alerta (viene de la Entrega 2). No se agregó `PrediccionFalla.copyWith`: el servicio devuelve la fila actualizada.
+- [x] **T-12** Marcar una alerta como atendida sin programar · CA-5 · depende de: T-11
+  - Hecha: 2026-11-27
+  - Archivos: `lib/services/maintenance_service.dart`, `lib/screens/acciones_mantenimiento.dart`, `lib/components/tarjeta_alerta.dart`, `lib/pages/maintenance_page.dart`, `lib/pages/vehicle_detail_page.dart`, `lib/screens/vehicle_detail_screen.dart`, `test/app_store_test.dart`
+  - Notas: `alertas` ahora excluye `confirmada` y `descartada`. Prueba a mano hecha por otro integrante del equipo.
+- [x] **T-13** Recargar alertas deslizando, con aviso de vacío y error con *Reintentar* · CA-1, CA-3, CA-4 · depende de: T-11
+  - Hecha: 2026-11-27
+  - Archivos: `lib/screens/maintenance_screen.dart`, `lib/pages/maintenance_page.dart`, `lib/state/app_store.dart`
+  - Notas: El error de la recarga va en un `SnackBar` con *Reintentar* para no tapar las alertas ya cargadas (TS-04 1.1.0). Además de deslizar, hay botón ⟳ *Recargar alertas*. Prueba a mano hecha por otro integrante del equipo.
 
 ## TS-05 · Registrar mantenimiento · Elías Saldarriaga
 
@@ -84,5 +102,11 @@ Cada integrante implementa y sube (commit) sus propias tareas.
 
 ## TS-07 · Evidencia de mantenimiento · Mauricio Marín
 
-- [ ] **T-20** Servicios de foto, Storage y evidencia, y el modelo `Evidencia` · CA-2, CA-3, CA-5, CA-6 · depende de: T-05
-- [ ] **T-21** `EvidenciasScreen` con galería, adjuntar y ver en grande, y el botón *Evidencia* en el historial · CA-1, CA-2, CA-4, CA-7 · depende de: T-20, T-06
+- [x] **T-20** Servicios de foto, Storage y evidencia, y el modelo `Evidencia` · CA-2, CA-3, CA-5, CA-6 · depende de: T-05
+  - Hecha: 2026-11-27
+  - Archivos: `pubspec.yaml`, `lib/models/models.dart`, `lib/services/foto_service.dart` (nuevo), `lib/services/storage_service.dart` (nuevo), `lib/services/evidencia_service.dart` (nuevo)
+  - Notas: Prueba a mano hecha por otro integrante del equipo.
+- [x] **T-21** `EvidenciasScreen` con galería, adjuntar y ver en grande, y el botón *Evidencia* en el historial · CA-1, CA-2, CA-4, CA-7 · depende de: T-20, T-06
+  - Hecha: 2026-11-27
+  - Archivos: `lib/screens/evidencias_screen.dart` (nuevo), `lib/components/galeria_evidencias.dart` (nuevo), `lib/components/fila_mantenimiento.dart`, `lib/pages/maintenance_page.dart`, `lib/pages/vehicle_detail_page.dart`, `lib/screens/maintenance_screen.dart`, `lib/screens/vehicle_detail_screen.dart`, `lib/main.dart`
+  - Notas: Prueba a mano hecha por otro integrante del equipo.

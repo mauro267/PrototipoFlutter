@@ -3,7 +3,7 @@ id: F-07
 titulo: Evidencia de mantenimiento
 version: 1.0.0
 fecha: 2026-11-26
-estado: aprobada
+estado: implementada
 autores: [Mauricio Marín, Elías Saldarriaga, Juan Felipe Martínez, Daniel Cabal]
 requisitos: [RF-13]
 depende_de: [F-05]
@@ -66,4 +66,5 @@ El coordinador necesita dejar fotos de lo que se hizo en un mantenimiento (la pi
 
 ## Historial
 
+- 1.0.0 · 2026-11-27 · Implementada.
 - 1.0.0 · 2026-11-26 · Primera versión, aprobada para la Entrega 3 (RF-13).
